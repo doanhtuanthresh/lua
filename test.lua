@@ -67,7 +67,7 @@ local dungeonMobList = {
 
 -- Danh sách mob event (hardcoded)
 local eventMobList = {
-    "GoldenSlime",
+    "Apple",
     "VoidReaper",
     "SantaGoblin"
 }
