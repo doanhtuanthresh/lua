@@ -1,3 +1,5 @@
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/refs/heads/main/test.lua"))()
+
 -- Auto Farm (TP theo list mob + Event Mob) - GUI + Exit Button
 
 local Players = game:GetService("Players")
