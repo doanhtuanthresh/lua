@@ -49,7 +49,7 @@ local exitBtn = makeButton("❌ Exit Script", 80)
 
 -- Mob list cần dọn
 local mobList = {
-    "Slime",
+    "Ti Ti",
     "Goblin",
     "Skeleton",
     "BossGoblin"
