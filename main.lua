@@ -4,7 +4,7 @@ if game.PlaceId == 111989938562194 then
     
     -- import Farm module 
     local Farm = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/farm.lua"))()
-    local Farm = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
+    local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
 
     local Window = OrionLib:MakeWindow({
         Name = "BrainrotScriptVN",
