@@ -22,6 +22,7 @@ if game.PlaceId == 111989938562194 then
             if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
                 if v.Humanoid.Health > 0 and not table.find(list, v.Name) then
                     table.insert(list, v.Name)
+                    print("[MobList] Found mob:", v.Name)
                 end
             end
         end
