@@ -1,13 +1,13 @@
 -- loader.lua
-local HttpService = game:GetService("HttpService")
-local PlaceId = game.PlaceId
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local LocalPlayer = Players.LocalPlayer
 
--- Link gốc GitHub của bạn (sửa lại nếu khác)
 local BASE_URL = "https://raw.githubusercontent.com/doanhtuanthresh/lua/main/"
 
 -- Map PlaceId → script cần load
 local PlaceScripts = {
-    [111989938562194] = "main.lua",      -- Lobby chính
+    [111989938562194] = "main.lua",      -- Lobby
     [90608986169653] = "dungeon.lua"     -- Dungeon
 }
 
@@ -26,9 +26,21 @@ local function loadScript(scriptName)
     end
 end
 
--- Chạy đúng script theo PlaceId
-if PlaceScripts[PlaceId] then
-    loadScript(PlaceScripts[PlaceId])
+-- Lúc join game thì load ngay
+if PlaceScripts[game.PlaceId] then
+    loadScript(PlaceScripts[game.PlaceId])
 else
-    warn("[Loader] Không có script cho PlaceId:", PlaceId)
+    warn("[Loader] Không có script cho PlaceId:", game.PlaceId)
 end
+
+-- Khi teleport sang place khác → tự chạy lại loader.lua
+TeleportService.TeleportInitFailed:Connect(function(_, result)
+    warn("[Loader] Teleport fail:", result)
+end)
+
+TeleportService.LocalPlayerArrived:Connect(function(player)
+    if player == LocalPlayer then
+        task.wait(3) -- chờ load world
+        loadstring(game:HttpGet(BASE_URL .. "loader.lua"))()
+    end
+end)
