@@ -24,8 +24,6 @@ function Speed.reset()
     if originalSpeed then
         hum.WalkSpeed = originalSpeed
         originalSpeed = nil -- reset xong thì xoá để lần sau còn cập nhật đúng
-    else
-        hum.WalkSpeed = 16 -- fallback nếu vì lý do nào đó chưa lưu
     end
 end
 
