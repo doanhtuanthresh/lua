@@ -1,6 +1,7 @@
 -- loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/refs/heads/main/test.lua"))()
 
 -- Auto Farm (Dungeon list + Event list) - No dropdown
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
 
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer
