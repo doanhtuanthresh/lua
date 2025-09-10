@@ -2,7 +2,7 @@
 if game.PlaceId == 111989938562194 then
     local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
     
-    -- import Farm module (bạn thay link GitHub của bạn vào)
+    -- import Farm module 
     local Farm = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/farm.lua"))()
 
     local Window = OrionLib:MakeWindow({
