@@ -15,23 +15,10 @@ if game.PlaceId == 111989938562194 then
     _G.autoTP = true
     local autofarmRunning = false
 
-    -- Hàm tìm folder chứa quái
-    local function findEnemiesFolder()
-        local candidates = {"Enemies", "Enemy", "EnemiesFolder", "Mobs", "Monsters", "NPCs"}
-        for _, name in ipairs(candidates) do
-            local f = workspace:FindFirstChild(name)
-            if f then return f end
-        end
-        return nil
-    end
-
-    local EnemiesFolder = findEnemiesFolder()
-
-    -- Hàm lấy danh sách mob
+    -- Hàm lấy danh sách mob (quét thẳng workspace)
     local function getMobList()
         local list = {}
-        local source = EnemiesFolder and EnemiesFolder:GetDescendants() or workspace:GetDescendants()
-        for _, v in ipairs(source) do
+        for _, v in ipairs(workspace:GetDescendants()) do
             if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
                 if v.Humanoid.Health > 0 and not table.find(list, v.Name) then
                     table.insert(list, v.Name)
@@ -49,8 +36,7 @@ if game.PlaceId == 111989938562194 then
             while _G.autofarm do
                 task.wait(0.2)
                 if _G.selectedMob then
-                    local source = EnemiesFolder and EnemiesFolder:GetDescendants() or workspace:GetDescendants()
-                    for _, v in ipairs(source) do
+                    for _, v in ipairs(workspace:GetDescendants()) do
                         if not _G.autofarm then break end
                         if v:IsA("Model") and v.Name == _G.selectedMob and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                             local hrp = v:FindFirstChild("HumanoidRootPart")
@@ -107,7 +93,9 @@ if game.PlaceId == 111989938562194 then
         })
     end
 
-    createDropdown(getMobList())
+    local initialList = getMobList()
+    if #initialList == 0 then initialList = {"<Không có quái>"} end
+    createDropdown(initialList)
 
     -- Refresh danh sách
     local function refreshDropdownAndNotify()
@@ -122,6 +110,7 @@ if game.PlaceId == 111989938562194 then
             Content = "Đã cập nhật danh sách ("..#newList.." quái).",
             Time = 3
         })
+        print("[DEBUG] Danh sách quái hiện tại:", table.concat(newList, ", "))
     end
 
     FarmTab:AddButton({
@@ -139,21 +128,5 @@ if game.PlaceId == 111989938562194 then
         end
     })
 
-    -- Khởi tạo Orion
     OrionLib:Init()
-
-    -- Fix dropdown luôn nổi trên cùng (overlay)
-    local function fixDropdownOverlay()
-        for _, obj in pairs(game.CoreGui:GetDescendants()) do
-            if obj:IsA("ScrollingFrame") and obj.Name == "Dropdown" then
-                obj.ZIndex = 99
-                for _, child in ipairs(obj:GetChildren()) do
-                    if child:IsA("GuiObject") then
-                        child.ZIndex = 99
-                    end
-                end
-            end
-        end
-    end
-    fixDropdownOverlay()
 end
