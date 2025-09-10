@@ -140,4 +140,19 @@ if game.PlaceId == 111989938562194 then
     })
 
     OrionLib:Init()
+
+    -- Fix ZIndex để dropdown luôn nổi trên cùng
+    local function fixDropdownZIndex()
+        for _, v in pairs(game.CoreGui:GetDescendants()) do
+            if v:IsA("ScrollingFrame") and v.Name == "Dropdown" then
+                v.ZIndex = 10
+                for _, child in pairs(v:GetChildren()) do
+                    if child:IsA("GuiObject") then
+                        child.ZIndex = 10
+                    end
+                end
+            end
+        end
+    end
+    fixDropdownZIndex()
 end
