@@ -1,5 +1,5 @@
 -- main.lua
-if game.PlaceId == 111989938562194 then
+if game.GameId == 7332711118 then
     local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
     
     -- import Farm module 
