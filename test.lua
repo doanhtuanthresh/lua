@@ -1,7 +1,7 @@
--- loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/test.lua"))()
+-- Auto Farm với Dropdown (quét toàn bộ workspace để tìm mob)
 
 if game.PlaceId == 111989938562194 then
-    local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/jensonhirst/Orion/main/source'))()
+    local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
     local Window = OrionLib:MakeWindow({
         Name = "BrainrotScriptVN",
         HidePremium = false,
@@ -15,7 +15,7 @@ if game.PlaceId == 111989938562194 then
     _G.autoTP = true
     local autofarmRunning = false
 
-    -- Hàm lấy danh sách mob (quét thẳng workspace)
+    -- Hàm lấy danh sách mob (quét toàn bộ workspace)
     local function getMobList()
         local list = {}
         for _, v in ipairs(workspace:GetDescendants()) do
@@ -93,9 +93,7 @@ if game.PlaceId == 111989938562194 then
         })
     end
 
-    local initialList = getMobList()
-    if #initialList == 0 then initialList = {"<Không có quái>"} end
-    createDropdown(initialList)
+    createDropdown(getMobList())
 
     -- Refresh danh sách
     local function refreshDropdownAndNotify()
@@ -110,7 +108,6 @@ if game.PlaceId == 111989938562194 then
             Content = "Đã cập nhật danh sách ("..#newList.." quái).",
             Time = 3
         })
-        print("[DEBUG] Danh sách quái hiện tại:", table.concat(newList, ", "))
     end
 
     FarmTab:AddButton({
