@@ -4,6 +4,7 @@ if game.PlaceId == 111989938562194 then
     
     -- import Farm module 
     local Farm = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/farm.lua"))()
+    local Farm = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
 
     local Window = OrionLib:MakeWindow({
         Name = "BrainrotScriptVN",
@@ -64,6 +65,19 @@ if game.PlaceId == 111989938562194 then
             if Value then Farm.start() end
         end
     })
+
+    -- Thêm toggle Speed vào GUI
+FarmTab:AddToggle({
+    Name = "⚡ Tăng tốc",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            Speed.set(150) -- chỉnh số tuỳ thích
+        else
+            Speed.reset()
+        end
+    end
+})
 
     OrionLib:Init()
 end
