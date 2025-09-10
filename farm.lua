@@ -27,55 +27,41 @@ function Farm.start()
     autofarmRunning = true
     task.spawn(function()
         while Farm.autofarm do
-            task.wait(0.2)
-            if Farm.selectedMob then
-                -- Tìm tất cả mob còn sống
-                local mobs = {}
-                for _, v in ipairs(workspace:GetDescendants()) do
-                    if v:IsA("Model") and v.Name == Farm.selectedMob 
-                        and v:FindFirstChild("Humanoid") 
-                        and v.Humanoid.Health > 0 
-                        and v:FindFirstChild("HumanoidRootPart") then
-                        table.insert(mobs, v)
-                    end
+            task.wait(0.5)
+            -- tìm mob mới mỗi vòng
+            local targetMob = nil
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v.Name == Farm.selectedMob 
+                and v:FindFirstChild("Humanoid") 
+                and v.Humanoid.Health > 0 then
+                    targetMob = v
+                    break
                 end
+            end
 
-                if #mobs == 0 then
-                    task.wait(1) -- nếu chưa có quái thì đợi spawn
-                else
-                    -- Lấy từng mob trong danh sách
-                    for _, mob in ipairs(mobs) do
-                        if not Farm.autofarm then break end
-                        local hrp = mob:FindFirstChild("HumanoidRootPart")
-
-                        -- Farm cho đến khi mob chết
-                        while Farm.autofarm 
-                            and mob 
-                            and mob:FindFirstChild("Humanoid") 
-                            and mob.Humanoid.Health > 0 do
-                            
-                            task.wait(0.2)
-                            if hrp and Farm.autoTP then
-                                -- luôn giữ vị trí gần mob
-                                pcall(function()
-                                    local char = game.Players.LocalPlayer.Character
-                                    if char and char:FindFirstChild("HumanoidRootPart") then
-                                        char.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0,0,5)
-                                    end
-                                end)
-                            end
-
-                            -- auto click
-                            if mob:FindFirstChild("ClickDetector") then
-                                pcall(function() fireclickdetector(mob.ClickDetector) end)
-                            end
+            -- nếu tìm thấy thì TP đến mob đó
+            if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
+                local hrp = targetMob.HumanoidRootPart
+                while Farm.autofarm and targetMob 
+                and targetMob:FindFirstChild("Humanoid") 
+                and targetMob.Humanoid.Health > 0 do
+                    pcall(function()
+                        local char = game.Players.LocalPlayer.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            char.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0,0,5)
                         end
-                    end
+                        if targetMob:FindFirstChild("ClickDetector") then
+                            fireclickdetector(targetMob.ClickDetector)
+                        end
+                    end)
+                    task.wait(0.2)
                 end
+                -- hết vòng lặp này => mob chết => quay lại while ngoài để tìm mob mới
             end
         end
         autofarmRunning = false
     end)
 end
+
 
 return Farm
