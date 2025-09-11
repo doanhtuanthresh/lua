@@ -9,7 +9,7 @@ if game.GameId == 7332711118 then
     local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
 
     local Window = OrionLib:MakeWindow({
-        Name = "BrainrotScriptVN",
+        Name = "NOKM",
         HidePremium = false,
         SaveConfig = true,
         ConfigFolder = "OrionTest"
