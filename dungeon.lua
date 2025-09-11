@@ -3,6 +3,8 @@ local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jens
 -- Require dungeonModule
 local Dungeon = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/dungeonModule.lua"))()
 
+local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
+
 -- GUI
 local Window = OrionLib:MakeWindow({
     Name = "NOKM",
