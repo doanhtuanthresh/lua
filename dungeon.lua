@@ -1,8 +1,7 @@
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
 
 -- Require dungeonModule
--- ⚠️ Nhớ chỉnh đường dẫn cho đúng
-local Dungeon = require(game:GetService("ReplicatedStorage").Modules.dungeonModule)
+local Dungeon = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/dungeonModule.lua"))()
 
 -- GUI
 local Window = OrionLib:MakeWindow({
