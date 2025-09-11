@@ -19,16 +19,33 @@ local DungeonMap = {
     }
 }
 
+-- Helper: so khớp tên (không phân biệt hoa thường, cho phép partial match)
+local function nameMatches(realName, expected)
+    return string.find(string.lower(realName), string.lower(expected), 1, true) ~= nil
+end
+
 -- Nhận diện dungeon dựa theo mob/boss
 function Dungeon.detectDungeon()
     for dungeonName, data in pairs(DungeonMap) do
+        -- check mobs
         for _, mobName in ipairs(data.Mobs) do
-            if workspace:FindFirstChild(mobName, true) then
-                return dungeonName
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v:FindFirstChild("Humanoid") then
+                    if nameMatches(v.Name, mobName) then
+                        return dungeonName
+                    end
+                end
             end
         end
-        if data.Boss and workspace:FindFirstChild(data.Boss, true) then
-            return dungeonName
+        -- check boss
+        if data.Boss then
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v:FindFirstChild("Humanoid") then
+                    if nameMatches(v.Name, data.Boss) then
+                        return dungeonName
+                    end
+                end
+            end
         end
     end
     return "Unknown"
@@ -43,8 +60,14 @@ function Dungeon.getMobList(currentDungeon)
     for _, v in ipairs(workspace:GetDescendants()) do
         if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
             if v.Humanoid.Health > 0 then
-                -- chỉ lấy mob thuộc dungeon hiện tại
-                if table.find(config.Mobs, v.Name) or v.Name == config.Boss then
+                -- chỉ lấy mob thuộc dungeon hiện tại (so sánh ignore case + partial)
+                for _, mobName in ipairs(config.Mobs) do
+                    if nameMatches(v.Name, mobName) then
+                        table.insert(list, v)
+                        break
+                    end
+                end
+                if config.Boss and nameMatches(v.Name, config.Boss) then
                     table.insert(list, v)
                 end
             end
