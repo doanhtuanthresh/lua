@@ -5,7 +5,7 @@ local Dungeon = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanh
 
 -- GUI
 local Window = OrionLib:MakeWindow({
-    Name = "H4xScripts",
+    Name = "NOKM",
     HidePremium = false,
     SaveConfig = false,
     ConfigFolder = "DungeonScript"
