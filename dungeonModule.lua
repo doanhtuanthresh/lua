@@ -84,15 +84,34 @@ function Dungeon.killMob(mob)
         pcall(function()
             local char = game.Players.LocalPlayer.Character
             if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,5)
+                -- Tele lên trên mob
+                char.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+                -- Giữ nhân vật không rơi
+                if not char.HumanoidRootPart:FindFirstChild("AntiFall") then
+                    local bv = Instance.new("BodyVelocity")
+                    bv.Name = "AntiFall"
+                    bv.Velocity = Vector3.new(0,0,0)
+                    bv.MaxForce = Vector3.new(0, math.huge, 0)
+                    bv.Parent = char.HumanoidRootPart
+                end
             end
+
             if mob:FindFirstChild("ClickDetector") then
                 fireclickdetector(mob.ClickDetector)
             end
         end)
         task.wait(0.2)
     end
+
+    -- mob chết => bỏ AntiFall để nhân vật về bình thường
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local bv = char.HumanoidRootPart:FindFirstChild("AntiFall")
+        if bv then bv:Destroy() end
+    end
 end
+
 
 -- Khi dungeon clear
 function Dungeon.handleClear()
