@@ -38,4 +38,17 @@ MainTab:AddToggle({
     end
 })
 
+-- Toggle Speed
+    MainTab:AddToggle({
+        Name = "⚡ Tăng tốc",
+        Default = false,
+        Callback = function(Value)
+            if Value then
+                Speed.set(150) -- chỉnh số tuỳ thích
+            else
+                Speed.reset()
+            end
+        end
+    })
+
 OrionLib:Init()
