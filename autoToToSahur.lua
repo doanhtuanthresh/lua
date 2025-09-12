@@ -6,23 +6,6 @@ local Players = game:GetService("Players")
 local RS = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- 🔹 UI Setup
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ToToUI"
-screenGui.Parent = game:GetService("CoreGui")
-
-local bossLabel = Instance.new("TextLabel")
-bossLabel.Size = UDim2.new(0, 200, 0, 40)
-bossLabel.Position = UDim2.new(0, 20, 0, 200)
-bossLabel.BackgroundTransparency = 0.3
-bossLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-bossLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-bossLabel.TextStrokeTransparency = 0
-bossLabel.TextScaled = true
-bossLabel.Font = Enum.Font.SourceSansBold
-bossLabel.Parent = screenGui
-bossLabel.Text = "To To Sahur: 0"
-
 -- Tìm toàn bộ boss "To To Sahur"
 local function getAllBosses()
     local bosses = {}
@@ -36,8 +19,6 @@ local function getAllBosses()
             end
         end
     end
-    -- cập nhật UI
-    bossLabel.Text = "To To Sahur: " .. tostring(#bosses)
     return bosses
 end
 
@@ -96,7 +77,6 @@ function ToTo.start()
             else
                 -- không còn boss nào sống → chờ spawn lại
                 task.wait(5)
-                getAllBosses() -- cập nhật lại số lượng trên UI
             end
             task.wait(0.5)
         end
