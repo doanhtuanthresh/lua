@@ -1,15 +1,14 @@
--- dungeonModule.lua
 local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = false
 
--- danh sách mob đã biết (cứ thêm tên mob vào list này)
+-- danh sách mob đã biết (cứ thêm keyword vào list này)
 local MobList = {
-    "Tang Tang Tang Tang Kelentang",
-    "Orc",
-    "Demon",
-    "SlimeBoss",
-    "Skeleton"
+    "tang",      -- bắt "Tang Tang Tang Tang Kelentang"
+    "orc",
+    "demon",
+    "slime",
+    "skeleton"
 }
 
 -- phát hiện dungeon hiện tại
@@ -21,6 +20,16 @@ function Dungeon.detectDungeon()
     return "Không xác định"
 end
 
+-- kiểm tra mob có khớp keyword trong list không
+local function isMobInList(mobName)
+    for _, keyword in ipairs(MobList) do
+        if string.find(mobName:lower(), keyword:lower()) then
+            return true
+        end
+    end
+    return false
+end
+
 -- tìm mob gần nhất dựa trên list
 local function getNearestMob()
     local player = game.Players.LocalPlayer
@@ -30,12 +39,14 @@ local function getNearestMob()
     local nearest, dist = nil, math.huge
 
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") and table.find(MobList, obj.Name) and obj:FindFirstChild("HumanoidRootPart") then
-            local mobHrp = obj.HumanoidRootPart
-            local d = (hrp.Position - mobHrp.Position).Magnitude
-            if d < dist then
-                nearest = obj
-                dist = d
+        if obj:IsA("Model") and isMobInList(obj.Name) and obj:FindFirstChild("HumanoidRootPart") and obj:FindFirstChild("Humanoid") then
+            if obj.Humanoid.Health > 0 then
+                local mobHrp = obj.HumanoidRootPart
+                local d = (hrp.Position - mobHrp.Position).Magnitude
+                if d < dist then
+                    nearest = obj
+                    dist = d
+                end
             end
         end
     end
@@ -47,7 +58,9 @@ end
 local function tpToMob(mob)
     local player = game.Players.LocalPlayer
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+        -- dịch ra sau lưng 3 stud
+        player.Character.HumanoidRootPart.CFrame =
+            mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
     end
 end
 
