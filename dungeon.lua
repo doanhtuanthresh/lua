@@ -19,7 +19,6 @@ local MainTab = Window:MakeTab({
     PremiumOnly = false
 })
 
-MainTab:AddLabel("Dungeon hiện tại: " .. Dungeon.detectDungeon())
 
 MainTab:AddToggle({
     Name = "Auto Dungeons",
