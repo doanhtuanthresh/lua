@@ -1,4 +1,4 @@
--- dungeon.lua
+-- dungeonModule.lua
 local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = true
@@ -13,8 +13,9 @@ local TeleportService = game:GetService("TeleportService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Remote attack
-local AttackRemote = ReplicatedStorage:FindFirstChild("RequestAttack")
+-- Remote attack (check cả 2 kiểu viết hoa/thường)
+local AttackRemote = ReplicatedStorage:FindFirstChild("requestattack")
+    or ReplicatedStorage:FindFirstChild("RequestAttack")
 
 -- =========================
 -- Danh sách mob cần target
@@ -27,7 +28,7 @@ Dungeon.TargetList = {
     -- thêm mob khác tuỳ dungeon
 }
 
--- Helper: so khớp tên mob
+-- Helper: kiểm tra tên mob có trong list
 local function inTargetList(name)
     if not name then return false end
     for _, n in ipairs(Dungeon.TargetList) do
@@ -36,6 +37,20 @@ local function inTargetList(name)
         end
     end
     return false
+end
+
+-- Detect dungeon (dựa vào boss trong TargetList)
+function Dungeon.detectDungeon()
+    for _, mobName in ipairs(Dungeon.TargetList) do
+        for _, v in ipairs(Workspace:GetChildren()) do
+            if v:IsA("Model") and v:FindFirstChild("Humanoid") then
+                if string.find(string.lower(v.Name), string.lower(mobName), 1, true) then
+                    return "Dungeon (" .. mobName .. ")"
+                end
+            end
+        end
+    end
+    return "Unknown"
 end
 
 -- =========================
