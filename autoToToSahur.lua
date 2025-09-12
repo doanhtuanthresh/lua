@@ -17,11 +17,14 @@ local function getAllBosses()
     return bosses
 end
 
--- Request attack
+-- Request attack (ưu tiên RequestAttack, fallback clickdetector)
 local function attack(mob)
+    if not mob then return end
     local remote = game.ReplicatedStorage:FindFirstChild("RequestAttack")
-    if remote and mob then
+    if remote then
         remote:FireServer(mob)
+    elseif mob:FindFirstChild("ClickDetector") then
+        fireclickdetector(mob.ClickDetector)
     end
 end
 
@@ -38,6 +41,7 @@ local function farmBoss(mob)
     and mob.Humanoid.Health > 0 do
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
+                -- dịch chuyển giữ khoảng cách -5 sau lưng mob
                 hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
                 attack(mob)
             end
