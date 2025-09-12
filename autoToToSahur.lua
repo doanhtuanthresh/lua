@@ -9,13 +9,26 @@ local LocalPlayer = Players.LocalPlayer
 -- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 
--- Tìm boss "To To Sahur" còn sống (trả về boss đầu tiên)
+-- Vị trí spawn To To Sahur theo từng map
+local bossSpawns = {
+    ["Larila Desert"]    = CFrame.new(513, 105, -77),
+    ["Tralalero Ocean"]  = CFrame.new(-287, 109, -1866),
+    ["Mount Ambalabu"]   = CFrame.new(-1531, 147, 1375),
+    ["Chicleteiramania"] = CFrame.new(-2640, 113.7, -899),
+    ["Nuclearo Core"]    = CFrame.new(-2200, 291, -3756),
+    ["Udin Dinlympus"]   = CFrame.new(1294, -41, -4262),
+    ["Glorbo Heights"]   = CFrame.new(-3945, 51, 934),
+    ["Brainrot Abyss"]   = CFrame.new(-1788, 199, 5011),
+    ["Bombardino Sewer"] = CFrame.new(-3607, 197, 2246),
+}
+
+-- Detect boss
 local function getBoss()
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") 
-        and string.find(string.lower(obj.Name), "to to sahur") 
-        and obj:FindFirstChild("Humanoid") 
-        and obj:FindFirstChild("HumanoidRootPart") 
+        if obj:IsA("Model")
+        and string.find(string.lower(obj.Name), "to to sahur")
+        and obj:FindFirstChild("Humanoid")
+        and obj:FindFirstChild("HumanoidRootPart")
         and obj.Humanoid.Health > 0 then
             return obj
         end
@@ -23,7 +36,23 @@ local function getBoss()
     return nil
 end
 
--- Request attack (gửi CFrame tới server)
+-- Tele tới spawn map gần boss
+local function gotoBoss(boss)
+    if boss and boss:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        for name, cf in pairs(bossSpawns) do
+            if (boss.HumanoidRootPart.Position - cf.Position).Magnitude < 150 then
+                hrp.CFrame = cf + Vector3.new(0, 5, 0)
+                print("Tele đến:", name)
+                break
+            end
+        end
+    end
+end
+
+-- Request attack
 local function attack(mob)
     if mob and mob:FindFirstChild("HumanoidRootPart") then
         pcall(function()
@@ -32,15 +61,17 @@ local function attack(mob)
     end
 end
 
--- Teleport và farm boss cho đến khi chết
+-- Farm boss
 local function farmBoss(mob)
     local char = LocalPlayer.Character
     if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
     local hrp = char.HumanoidRootPart
 
-    while ToTo.auto 
-    and mob 
-    and mob:FindFirstChild("Humanoid") 
+    gotoBoss(mob) -- Tele đến map spawn trước
+
+    while ToTo.auto
+    and mob
+    and mob:FindFirstChild("Humanoid")
     and mob.Humanoid.Health > 0 do
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
@@ -52,7 +83,7 @@ local function farmBoss(mob)
     end
 end
 
--- Bắt đầu vòng lặp Auto To To Sahur
+-- Auto vòng lặp
 function ToTo.start()
     if farming then return end
     farming = true
@@ -68,7 +99,6 @@ function ToTo.start()
             if boss then
                 farmBoss(boss)
             else
-                -- không có boss → chờ spawn lại
                 task.wait(3)
             end
         end
