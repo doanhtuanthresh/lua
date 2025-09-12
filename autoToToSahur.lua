@@ -128,4 +128,13 @@ function ToTo.start()
     end)
 end
 
+-- ✅ Bắt sự kiện respawn nhân vật
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(2) -- đợi nhân vật load đầy đủ
+    if ToTo.auto then
+        print("[AutoToTo] Nhân vật respawn, khởi động lại farm boss")
+        ToTo.start()
+    end
+end)
+
 return ToTo
