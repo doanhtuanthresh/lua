@@ -13,45 +13,18 @@ local TeleportService = game:GetService("TeleportService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Remote để attack
-local AttackRemote = ReplicatedStorage:FindFirstChild("requestattack")
+-- Remote attack
+local AttackRemote = ReplicatedStorage:FindFirstChild("RequestAttack")
 
--- Boss -> Dungeon
-local BossMap = {
-    ["Bisonte Giuppture"] = "Dungeon1",
-    ["Pot Hotspot"]       = "Dungeon2",
-    ["Bearini"]           = "Dungeon3",
-    -- thêm boss khác ở đây
-}
-
--- Helper: match tên (case-insensitive, partial)
-local function matchesName(realName, expected)
-    if not realName or not expected then return false end
-    return string.find(string.lower(realName), string.lower(expected), 1, true) ~= nil
-end
-
--- Detect dungeon theo boss
-function Dungeon.detectDungeon()
-    for bossName, dungeonName in pairs(BossMap) do
-        for _, v in ipairs(Workspace:GetChildren()) do
-            if v:IsA("Model") and v:FindFirstChild("Humanoid") then
-                if matchesName(v.Name, bossName) then
-                    return dungeonName
-                end
-            end
-        end
-    end
-    return "Unknown"
-end
-
+-- =========================
 -- Tìm mob gần nhất
+-- =========================
 function Dungeon.getNearestMob()
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
-
     local hrp = char.HumanoidRootPart
-    local nearest, dist = nil, math.huge
 
+    local nearest, dist = nil, math.huge
     for _, v in ipairs(Workspace:GetChildren()) do
         local humanoid = v:FindFirstChild("Humanoid")
         local root = v:FindFirstChild("HumanoidRootPart")
@@ -63,11 +36,12 @@ function Dungeon.getNearestMob()
             end
         end
     end
-
     return nearest
 end
 
--- Giữ player đứng trên mob + attack
+-- =========================
+-- Dịch chuyển + Attack mob
+-- =========================
 local function attackMob(mob)
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -76,7 +50,7 @@ local function attackMob(mob)
     -- Dịch chuyển lên mob
     hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
 
-    -- AntiFall giữ y cố định
+    -- AntiFall giữ player không rơi
     if not hrp:FindFirstChild("AntiFall") then
         local bv = Instance.new("BodyVelocity")
         bv.Name = "AntiFall"
@@ -85,7 +59,7 @@ local function attackMob(mob)
         bv.Parent = hrp
     end
 
-    -- Ưu tiên Remote attack
+    -- Tấn công mob
     if AttackRemote then
         AttackRemote:FireServer(mob)
     elseif mob:FindFirstChild("ClickDetector") then
@@ -93,7 +67,9 @@ local function attackMob(mob)
     end
 end
 
--- Kill 1 mob
+-- =========================
+-- Kill mob cho tới khi chết
+-- =========================
 function Dungeon.killMob(mob)
     while Dungeon.autoDungeon
     and mob
@@ -111,7 +87,9 @@ function Dungeon.killMob(mob)
     end
 end
 
--- Clear dungeon
+-- =========================
+-- Dungeon clear
+-- =========================
 function Dungeon.handleClear()
     print("[Dungeon] Clear dungeon!")
     if Dungeon.autoReturn then
@@ -119,14 +97,15 @@ function Dungeon.handleClear()
     end
 end
 
+-- =========================
 -- Main loop
+-- =========================
 function Dungeon.start()
     if running then return end
     running = true
 
     task.spawn(function()
-        local currentDungeon = Dungeon.detectDungeon()
-        print("[Dungeon] Bạn đang ở:", currentDungeon)
+        print("[Dungeon] Auto bắt đầu...")
 
         local emptyCount = 0
         while Dungeon.autoDungeon do
