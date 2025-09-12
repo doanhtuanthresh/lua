@@ -2,13 +2,13 @@ local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = false
 
--- danh sách mob đã biết (cứ thêm keyword vào list này)
+-- danh sách mob đã biết (cứ thêm tên mob vào list này)
 local MobList = {
-    "tang",      -- bắt "Tang Tang Tang Tang Kelentang"
-    "orc",
-    "demon",
-    "slime",
-    "skeleton"
+    "Tang Tang Tang Tang Kelentang",
+    "Orc",
+    "Demon",
+    "SlimeBoss",
+    "Skeleton"
 }
 
 -- phát hiện dungeon hiện tại
@@ -20,16 +20,6 @@ function Dungeon.detectDungeon()
     return "Không xác định"
 end
 
--- kiểm tra mob có khớp keyword trong list không
-local function isMobInList(mobName)
-    for _, keyword in ipairs(MobList) do
-        if string.find(mobName:lower(), keyword:lower()) then
-            return true
-        end
-    end
-    return false
-end
-
 -- tìm mob gần nhất dựa trên list
 local function getNearestMob()
     local player = game.Players.LocalPlayer
@@ -39,29 +29,25 @@ local function getNearestMob()
     local nearest, dist = nil, math.huge
 
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") and isMobInList(obj.Name) and obj:FindFirstChild("HumanoidRootPart") and obj:FindFirstChild("Humanoid") then
-            if obj.Humanoid.Health > 0 then
-                local mobHrp = obj.HumanoidRootPart
-                local d = (hrp.Position - mobHrp.Position).Magnitude
-                if d < dist then
-                    nearest = obj
-                    dist = d
+        if obj:IsA("Model") 
+        and obj:FindFirstChild("Humanoid") 
+        and obj:FindFirstChild("HumanoidRootPart") 
+        and obj.Humanoid.Health > 0 then
+            -- check tên mob có chứa keyword trong MobList không
+            for _, keyword in ipairs(MobList) do
+                if string.find(string.lower(obj.Name), string.lower(keyword)) then
+                    local mobHrp = obj.HumanoidRootPart
+                    local d = (hrp.Position - mobHrp.Position).Magnitude
+                    if d < dist then
+                        nearest = obj
+                        dist = d
+                    end
                 end
             end
         end
     end
 
     return nearest
-end
-
--- teleport đến mob
-local function tpToMob(mob)
-    local player = game.Players.LocalPlayer
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- dịch ra sau lưng 3 stud
-        player.Character.HumanoidRootPart.CFrame =
-            mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
-    end
 end
 
 -- request attack mob
@@ -72,16 +58,39 @@ local function attackMob(mob)
     end
 end
 
+-- teleport giữ sát mob + attack liên tục
+local function farmMob(mob)
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
+
+    local hrp = char.HumanoidRootPart
+
+    while Dungeon.autoDungeon 
+    and mob 
+    and mob:FindFirstChild("Humanoid") 
+    and mob.Humanoid.Health > 0 do
+        pcall(function()
+            if mob:FindFirstChild("HumanoidRootPart") then
+                -- TP giữ khoảng cách 3 stud sau lưng mob
+                hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-3)
+                -- Tấn công
+                attackMob(mob)
+            end
+        end)
+        task.wait(0.2)
+    end
+end
+
 -- vòng lặp auto dungeon
 function Dungeon.start()
-    spawn(function()
+    task.spawn(function()
         while Dungeon.autoDungeon do
             local mob = getNearestMob()
             if mob then
-                tpToMob(mob)
-                attackMob(mob)
+                farmMob(mob)
             end
-            task.wait(0.5)
+            task.wait(0.3)
         end
     end)
 end
