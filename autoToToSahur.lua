@@ -5,6 +5,15 @@ local farming = false
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local TeleportService = game:GetService("TeleportService")
+
+-- Patch lỗi: tạo event giả LocalPlayerArrived
+if not TeleportService:FindFirstChild("LocalPlayerArrived") then
+    local fake = Instance.new("BindableEvent")
+    fake.Name = "LocalPlayerArrived"
+    fake.Parent = TeleportService
+    warn("[Patch] Added fake TeleportService.LocalPlayerArrived to prevent errors")
+end
 
 -- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
