@@ -3,7 +3,6 @@ ToTo.auto = false
 local running = false
 
 local Players = game:GetService("Players")
-local RS = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
@@ -22,7 +21,7 @@ ToTo.Maps = {
     "Glorbo Heights",
     "Brainrot Abyss",
     "Bombardino Sewer",
-    -- ... tới Map11
+    -- thêm map khác ...
 }
 
 -- Tìm toàn bộ boss "To To Sahur" trong map hiện tại
@@ -32,8 +31,10 @@ local function getAllBosses()
         if obj:IsA("Model")
             and obj:FindFirstChild("Humanoid")
             and obj:FindFirstChild("HumanoidRootPart") then
+            local hum = obj.Humanoid
             if string.find(string.lower(obj.Name), "to to sahur")
-                and obj.Humanoid.Health > 0 then
+                and hum.Health > 0
+                and hum:GetState() ~= Enum.HumanoidStateType.Dead then
                 table.insert(bosses, obj)
             end
         end
@@ -64,19 +65,22 @@ local function farmBoss(boss)
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
     local hrp = char.HumanoidRootPart
 
-    while ToTo.auto and boss
-        and boss:FindFirstChild("Humanoid")
-        and boss.Humanoid.Health > 0 do
-        pcall(function()
-            -- dịch chuyển sát boss
-            hrp.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+    local hum = boss:FindFirstChild("Humanoid")
+    if not hum then return end
 
-            -- tấn công
-            local remote = ReplicatedStorage:FindFirstChild("RequestAttack")
-            if remote then
-                remote:FireServer(boss)
-            elseif boss:FindFirstChild("ClickDetector") then
-                fireclickdetector(boss.ClickDetector)
+    while ToTo.auto and hum and hum.Health > 0 and hum:GetState() ~= Enum.HumanoidStateType.Dead do
+        pcall(function()
+            if boss:FindFirstChild("HumanoidRootPart") then
+                -- dịch chuyển sát boss
+                hrp.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+                -- tấn công
+                local remote = ReplicatedStorage:FindFirstChild("RequestAttack")
+                if remote then
+                    remote:FireServer(boss)
+                elseif boss:FindFirstChild("ClickDetector") then
+                    fireclickdetector(boss.ClickDetector)
+                end
             end
         end)
         task.wait(0.3)
