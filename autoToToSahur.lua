@@ -1,77 +1,106 @@
 local ToTo = {}
 ToTo.auto = false
-local farming = false
+local running = false
 
--- Lọc ra tất cả boss "To To Sahur" còn sống
+local Players = game:GetService("Players")
+local RS = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- 🔹 UI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ToToUI"
+screenGui.Parent = game:GetService("CoreGui")
+
+local bossLabel = Instance.new("TextLabel")
+bossLabel.Size = UDim2.new(0, 200, 0, 40)
+bossLabel.Position = UDim2.new(0, 20, 0, 200)
+bossLabel.BackgroundTransparency = 0.3
+bossLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bossLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+bossLabel.TextStrokeTransparency = 0
+bossLabel.TextScaled = true
+bossLabel.Font = Enum.Font.SourceSansBold
+bossLabel.Parent = screenGui
+bossLabel.Text = "To To Sahur: 0"
+
+-- Tìm toàn bộ boss "To To Sahur"
 local function getAllBosses()
     local bosses = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("Model") 
-        and string.find(string.lower(obj.Name), "to to sahur") 
         and obj:FindFirstChild("Humanoid") 
-        and obj:FindFirstChild("HumanoidRootPart") 
-        and obj.Humanoid.Health > 0 then
-            table.insert(bosses, obj)
+        and obj:FindFirstChild("HumanoidRootPart") then
+            if string.find(string.lower(obj.Name), "to to sahur") 
+            and obj.Humanoid.Health > 0 then
+                table.insert(bosses, obj)
+            end
         end
     end
+    -- cập nhật UI
+    bossLabel.Text = "To To Sahur: " .. tostring(#bosses)
     return bosses
 end
 
--- Request attack
-local function attack(mob)
-    local remote = game.ReplicatedStorage:FindFirstChild("RequestAttack")
-    if remote and mob then
-        remote:FireServer(mob)
-    end
-end
-
--- Teleport và farm boss cho đến khi chết
-local function farmBoss(mob)
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
+-- Tìm boss gần nhất trong toàn world
+local function getNearestBoss()
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
     local hrp = char.HumanoidRootPart
 
-    while ToTo.auto 
-    and mob 
-    and mob:FindFirstChild("Humanoid") 
-    and mob.Humanoid.Health > 0 do
+    local nearest, dist = nil, math.huge
+    for _, boss in ipairs(getAllBosses()) do
+        local d = (boss.HumanoidRootPart.Position - hrp.Position).Magnitude
+        if d < dist then
+            nearest = boss
+            dist = d
+        end
+    end
+    return nearest
+end
+
+-- Teleport + Attack
+local function farmBoss(boss)
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+
+    while ToTo.auto and boss 
+    and boss:FindFirstChild("Humanoid") 
+    and boss.Humanoid.Health > 0 do
         pcall(function()
-            if mob:FindFirstChild("HumanoidRootPart") then
-                hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
-                attack(mob)
+            -- dịch chuyển sát boss
+            hrp.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+            -- tấn công
+            local remote = game.ReplicatedStorage:FindFirstChild("RequestAttack")
+            if remote then
+                remote:FireServer(boss)
+            elseif boss:FindFirstChild("ClickDetector") then
+                fireclickdetector(boss.ClickDetector)
             end
         end)
         task.wait(0.3)
     end
 end
 
--- Bắt đầu vòng lặp Auto To To Sahur
+-- Main loop
 function ToTo.start()
-    if farming then return end
-    farming = true
+    if running then return end
+    running = true
 
     task.spawn(function()
         while ToTo.auto do
-            if game.PlaceId ~= 111989938562194 then
-                task.wait(2)
-                continue
-            end
-
-            local bosses = getAllBosses()
-            if #bosses == 0 then
-                -- không có boss → chờ spawn lại
-                task.wait(5)
+            local boss = getNearestBoss()
+            if boss then
+                farmBoss(boss)
             else
-                -- farm từng boss một
-                for _, boss in ipairs(bosses) do
-                    if not ToTo.auto then break end
-                    farmBoss(boss)
-                    task.wait(0.5)
-                end
+                -- không còn boss nào sống → chờ spawn lại
+                task.wait(5)
+                getAllBosses() -- cập nhật lại số lượng trên UI
             end
+            task.wait(0.5)
         end
-        farming = false
+        running = false
     end)
 end
 
