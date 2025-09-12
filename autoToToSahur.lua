@@ -9,27 +9,25 @@ local LocalPlayer = Players.LocalPlayer
 -- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 
--- Lọc ra tất cả boss "To To Sahur" còn sống
-local function getAllBosses()
-    local bosses = {}
+-- Tìm boss "To To Sahur" còn sống (trả về boss đầu tiên)
+local function getBoss()
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("Model") 
         and string.find(string.lower(obj.Name), "to to sahur") 
         and obj:FindFirstChild("Humanoid") 
         and obj:FindFirstChild("HumanoidRootPart") 
         and obj.Humanoid.Health > 0 then
-            table.insert(bosses, obj)
+            return obj
         end
     end
-    return bosses
+    return nil
 end
 
 -- Request attack (gửi CFrame tới server)
 local function attack(mob)
     if mob and mob:FindFirstChild("HumanoidRootPart") then
-        local hrp = mob.HumanoidRootPart
         pcall(function()
-            RequestAttack:InvokeServer(hrp.CFrame)
+            RequestAttack:InvokeServer(mob.HumanoidRootPart.CFrame)
         end)
     end
 end
@@ -46,9 +44,7 @@ local function farmBoss(mob)
     and mob.Humanoid.Health > 0 do
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
-                -- dịch chuyển giữ khoảng cách -5 sau lưng mob
                 hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
-                -- gửi request attack tại vị trí mob
                 attack(mob)
             end
         end)
@@ -68,17 +64,12 @@ function ToTo.start()
                 continue
             end
 
-            local bosses = getAllBosses()
-            if #bosses == 0 then
-                -- không có boss → chờ spawn lại
-                task.wait(5)
+            local boss = getBoss()
+            if boss then
+                farmBoss(boss)
             else
-                -- farm từng boss một
-                for _, boss in ipairs(bosses) do
-                    if not ToTo.auto then break end
-                    farmBoss(boss)
-                    task.wait(0.5)
-                end
+                -- không có boss → chờ spawn lại
+                task.wait(3)
             end
         end
         farming = false
