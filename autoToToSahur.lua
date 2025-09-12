@@ -92,6 +92,19 @@ local function farmBoss(mob)
     end
 end
 
+-- Auto tele tuần tra khi không có boss
+local function patrolMaps()
+    for name, cf in pairs(bossSpawns) do
+        if not ToTo.auto then break end
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = cf + Vector3.new(0,5,0)
+            print("Đang kiểm tra map:", name)
+        end
+        task.wait(2) -- thời gian delay giữa các lần tele
+        if getBoss() then break end
+    end
+end
+
 -- Auto vòng lặp
 function ToTo.start()
     if farming then return end
@@ -108,7 +121,7 @@ function ToTo.start()
             if boss then
                 farmBoss(boss)
             else
-                task.wait(3)
+                patrolMaps() -- tự động tele nếu chưa có boss
             end
         end
         farming = false
