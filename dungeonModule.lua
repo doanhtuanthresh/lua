@@ -2,27 +2,40 @@
 local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = true
+
 local running = false
 
--- Map boss -> Dungeon name
+-- Services
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Remote để attack
+local AttackRemote = ReplicatedStorage:FindFirstChild("requestattack")
+
+-- Boss -> Dungeon
 local BossMap = {
     ["Bisonte Giuppture"] = "Dungeon1",
     ["Pot Hotspot"]       = "Dungeon2",
-    ["Bearini"]          = "Dungeon3",
+    ["Bearini"]           = "Dungeon3",
     -- thêm boss khác ở đây
 }
 
--- Helper: so khớp tên (không phân biệt hoa thường, partial match)
-local function nameMatches(realName, expected)
+-- Helper: match tên (case-insensitive, partial)
+local function matchesName(realName, expected)
+    if not realName or not expected then return false end
     return string.find(string.lower(realName), string.lower(expected), 1, true) ~= nil
 end
 
--- Nhận diện dungeon theo boss
+-- Detect dungeon theo boss
 function Dungeon.detectDungeon()
     for bossName, dungeonName in pairs(BossMap) do
-        for _, v in ipairs(workspace:GetChildren()) do
+        for _, v in ipairs(Workspace:GetChildren()) do
             if v:IsA("Model") and v:FindFirstChild("Humanoid") then
-                if nameMatches(v.Name, bossName) then
+                if matchesName(v.Name, bossName) then
                     return dungeonName
                 end
             end
@@ -31,20 +44,19 @@ function Dungeon.detectDungeon()
     return "Unknown"
 end
 
--- Tìm mob gần nhất (kể cả boss)
+-- Tìm mob gần nhất
 function Dungeon.getNearestMob()
-    local char = game.Players.LocalPlayer.Character
+    local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
 
     local hrp = char.HumanoidRootPart
     local nearest, dist = nil, math.huge
 
-    for _, v in ipairs(workspace:GetChildren()) do
-        if v:IsA("Model") 
-        and v:FindFirstChild("Humanoid") 
-        and v:FindFirstChild("HumanoidRootPart") 
-        and v.Humanoid.Health > 0 then
-            local d = (v.HumanoidRootPart.Position - hrp.Position).Magnitude
+    for _, v in ipairs(Workspace:GetChildren()) do
+        local humanoid = v:FindFirstChild("Humanoid")
+        local root = v:FindFirstChild("HumanoidRootPart")
+        if v:IsA("Model") and humanoid and root and humanoid.Health > 0 then
+            local d = (root.Position - hrp.Position).Magnitude
             if d < dist then
                 dist = d
                 nearest = v
@@ -55,52 +67,63 @@ function Dungeon.getNearestMob()
     return nearest
 end
 
--- Kill mob gần nhất
+-- Giữ player đứng trên mob + attack
+local function attackMob(mob)
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+
+    -- Dịch chuyển lên mob
+    hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+    -- AntiFall giữ y cố định
+    if not hrp:FindFirstChild("AntiFall") then
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "AntiFall"
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.MaxForce = Vector3.new(0, math.huge, 0)
+        bv.Parent = hrp
+    end
+
+    -- Ưu tiên Remote attack
+    if AttackRemote then
+        AttackRemote:FireServer(mob)
+    elseif mob:FindFirstChild("ClickDetector") then
+        fireclickdetector(mob.ClickDetector)
+    end
+end
+
+-- Kill 1 mob
 function Dungeon.killMob(mob)
-    while Dungeon.autoDungeon 
-    and mob 
-    and mob:FindFirstChild("Humanoid") 
+    while Dungeon.autoDungeon
+    and mob
+    and mob:FindFirstChild("Humanoid")
     and mob.Humanoid.Health > 0 do
-        pcall(function()
-            local char = game.Players.LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-
-                if not char.HumanoidRootPart:FindFirstChild("AntiFall") then
-                    local bv = Instance.new("BodyVelocity")
-                    bv.Name = "AntiFall"
-                    bv.Velocity = Vector3.new(0,0,0)
-                    bv.MaxForce = Vector3.new(0, math.huge, 0)
-                    bv.Parent = char.HumanoidRootPart
-                end
-            end
-
-            if mob:FindFirstChild("ClickDetector") then
-                fireclickdetector(mob.ClickDetector)
-            end
-        end)
+        pcall(function() attackMob(mob) end)
         task.wait(0.2)
     end
 
-    local char = game.Players.LocalPlayer.Character
+    -- Clear AntiFall
+    local char = LocalPlayer.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
         local bv = char.HumanoidRootPart:FindFirstChild("AntiFall")
         if bv then bv:Destroy() end
     end
 end
 
--- Khi dungeon clear
+-- Clear dungeon
 function Dungeon.handleClear()
-    print("[Dungeon] Dungeon clear!")
+    print("[Dungeon] Clear dungeon!")
     if Dungeon.autoReturn then
-        game:GetService("TeleportService"):Teleport(111989938562194, game.Players.LocalPlayer)
+        TeleportService:Teleport(111989938562194, LocalPlayer)
     end
 end
 
--- Vòng loop chính
+-- Main loop
 function Dungeon.start()
     if running then return end
     running = true
+
     task.spawn(function()
         local currentDungeon = Dungeon.detectDungeon()
         print("[Dungeon] Bạn đang ở:", currentDungeon)
@@ -112,7 +135,7 @@ function Dungeon.start()
                 emptyCount = 0
                 Dungeon.killMob(mob)
             else
-                emptyCount = emptyCount + 1
+                emptyCount += 1
                 if emptyCount >= 3 then
                     Dungeon.handleClear()
                     break
@@ -120,6 +143,7 @@ function Dungeon.start()
             end
             task.wait(0.5)
         end
+
         running = false
     end)
 end
