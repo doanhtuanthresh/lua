@@ -8,6 +8,9 @@ if game.GameId == 7332711118 then
     -- import Speed module
     local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
 
+    -- import ToToSahur module
+    local ToTo = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/autoToToSahur.lua"))()
+
     local Window = OrionLib:MakeWindow({
         Name = "NOKM",
         HidePremium = false,
@@ -77,6 +80,35 @@ if game.GameId == 7332711118 then
                 Speed.set(150) -- chỉnh số tuỳ thích
             else
                 Speed.reset()
+            end
+        end
+    })
+
+    -- Tab Auto To To Sahur
+    local ToToTab = Window:MakeTab({
+        Name = "Auto To To Sahur",
+        Icon = "",
+        PremiumOnly = false
+    })
+
+    ToToTab:AddToggle({
+        Name = "Auto To To Sahur (WorldBoss)",
+        Default = false,
+        Callback = function(Value)
+            ToTo.auto = Value
+            if Value then
+                ToTo.start()
+                OrionLib:MakeNotification({
+                    Name = "Auto To To Sahur",
+                    Content = "Đang săn To To Sahur...",
+                    Time = 3
+                })
+            else
+                OrionLib:MakeNotification({
+                    Name = "Auto To To Sahur",
+                    Content = "Đã tắt.",
+                    Time = 3
+                })
             end
         end
     })
