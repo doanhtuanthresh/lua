@@ -52,7 +52,7 @@ local function farmBoss(mob)
                 attack(mob)
             end
         end)
-        task.wait(0.05)
+        task.wait(0.3)
     end
 end
 
