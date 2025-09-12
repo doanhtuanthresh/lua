@@ -1,6 +1,5 @@
 local ToTo = {}
 ToTo.auto = false
-local farming = false
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -82,6 +81,10 @@ local function farmBoss(mob)
     and mob
     and mob:FindFirstChild("Humanoid")
     and mob.Humanoid.Health > 0 do
+        if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            break -- nhân vật chết → dừng vòng lặp nhỏ, chờ respawn
+        end
+
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
                 hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
@@ -100,19 +103,22 @@ local function patrolMaps()
             LocalPlayer.Character.HumanoidRootPart.CFrame = cf + Vector3.new(0,5,0)
             print("Đang kiểm tra map:", name)
         end
-        task.wait(2) -- thời gian delay giữa các lần tele
+        task.wait(2)
         if getBoss() then break end
     end
 end
 
--- Auto vòng lặp
+-- Auto vòng lặp (luôn chạy khi bật toggle)
 function ToTo.start()
-    if farming then return end
-    farming = true
-
     task.spawn(function()
         while ToTo.auto do
             if game.PlaceId ~= 111989938562194 then
+                task.wait(2)
+                continue
+            end
+
+            -- chờ nhân vật tồn tại
+            if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 task.wait(2)
                 continue
             end
@@ -121,20 +127,11 @@ function ToTo.start()
             if boss then
                 farmBoss(boss)
             else
-                patrolMaps() -- tự động tele nếu chưa có boss
+                patrolMaps()
             end
         end
-        farming = false
     end)
 end
 
--- ✅ Bắt sự kiện respawn nhân vật
-LocalPlayer.CharacterAdded:Connect(function(char)
-    task.wait(2) -- đợi nhân vật load đầy đủ
-    if ToTo.auto then
-        print("[AutoToTo] Nhân vật respawn, khởi động lại farm boss")
-        ToTo.start()
-    end
-end)
-
+-- Không cần CharacterAdded nữa vì vòng lặp chính tự chờ respawn
 return ToTo
