@@ -2,6 +2,13 @@ local ToTo = {}
 ToTo.auto = false
 local farming = false
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Remote
+local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
+
 -- Lọc ra tất cả boss "To To Sahur" còn sống
 local function getAllBosses()
     local bosses = {}
@@ -17,21 +24,19 @@ local function getAllBosses()
     return bosses
 end
 
--- Request attack (ưu tiên RequestAttack, fallback clickdetector)
+-- Request attack (gửi CFrame tới server)
 local function attack(mob)
-    if not mob then return end
-    local remote = game.ReplicatedStorage:FindFirstChild("RequestAttack")
-    if remote then
-        remote:FireServer(mob)
-    elseif mob:FindFirstChild("ClickDetector") then
-        fireclickdetector(mob.ClickDetector)
+    if mob and mob:FindFirstChild("HumanoidRootPart") then
+        local hrp = mob.HumanoidRootPart
+        pcall(function()
+            RequestAttack:InvokeServer(hrp.CFrame)
+        end)
     end
 end
 
 -- Teleport và farm boss cho đến khi chết
 local function farmBoss(mob)
-    local player = game.Players.LocalPlayer
-    local char = player.Character
+    local char = LocalPlayer.Character
     if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
     local hrp = char.HumanoidRootPart
 
@@ -43,6 +48,7 @@ local function farmBoss(mob)
             if mob:FindFirstChild("HumanoidRootPart") then
                 -- dịch chuyển giữ khoảng cách -5 sau lưng mob
                 hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
+                -- gửi request attack tại vị trí mob
                 attack(mob)
             end
         end)
