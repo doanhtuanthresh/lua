@@ -17,7 +17,29 @@ local LocalPlayer = Players.LocalPlayer
 local AttackRemote = ReplicatedStorage:FindFirstChild("RequestAttack")
 
 -- =========================
--- Tìm mob gần nhất
+-- Danh sách mob cần target
+-- =========================
+Dungeon.TargetList = {
+    "Tang Tang Tang Tang Kelentang",
+    "Orc",
+    "Skeleton",
+    "Bearini", -- boss
+    -- thêm mob khác tuỳ dungeon
+}
+
+-- Helper: so khớp tên mob
+local function inTargetList(name)
+    if not name then return false end
+    for _, n in ipairs(Dungeon.TargetList) do
+        if string.find(string.lower(name), string.lower(n), 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- =========================
+-- Tìm mob gần nhất trong list
 -- =========================
 function Dungeon.getNearestMob()
     local char = LocalPlayer.Character
@@ -29,10 +51,12 @@ function Dungeon.getNearestMob()
         local humanoid = v:FindFirstChild("Humanoid")
         local root = v:FindFirstChild("HumanoidRootPart")
         if v:IsA("Model") and humanoid and root and humanoid.Health > 0 then
-            local d = (root.Position - hrp.Position).Magnitude
-            if d < dist then
-                dist = d
-                nearest = v
+            if inTargetList(v.Name) then
+                local d = (root.Position - hrp.Position).Magnitude
+                if d < dist then
+                    dist = d
+                    nearest = v
+                end
             end
         end
     end
@@ -68,7 +92,7 @@ local function attackMob(mob)
 end
 
 -- =========================
--- Kill mob cho tới khi chết
+-- Kill 1 mob
 -- =========================
 function Dungeon.killMob(mob)
     while Dungeon.autoDungeon
