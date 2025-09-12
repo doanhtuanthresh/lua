@@ -1,3 +1,4 @@
+-- dungeon.lua
 local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = true
@@ -19,7 +20,7 @@ local DungeonMap = {
     }
 }
 
--- Helper: so khớp tên (không phân biệt hoa thường, cho phép partial match)
+-- Helper: so khớp tên (không phân biệt hoa thường, partial match)
 local function nameMatches(realName, expected)
     return string.find(string.lower(realName), string.lower(expected), 1, true) ~= nil
 end
@@ -27,23 +28,15 @@ end
 -- Nhận diện dungeon dựa theo mob/boss
 function Dungeon.detectDungeon()
     for dungeonName, data in pairs(DungeonMap) do
-        -- check mobs
-        for _, mobName in ipairs(data.Mobs) do
-            for _, v in ipairs(workspace:GetDescendants()) do
-                if v:IsA("Model") and v:FindFirstChild("Humanoid") then
+        for _, v in ipairs(workspace:GetChildren()) do
+            if v:IsA("Model") and v:FindFirstChild("Humanoid") then
+                for _, mobName in ipairs(data.Mobs) do
                     if nameMatches(v.Name, mobName) then
                         return dungeonName
                     end
                 end
-            end
-        end
-        -- check boss
-        if data.Boss then
-            for _, v in ipairs(workspace:GetDescendants()) do
-                if v:IsA("Model") and v:FindFirstChild("Humanoid") then
-                    if nameMatches(v.Name, data.Boss) then
-                        return dungeonName
-                    end
+                if data.Boss and nameMatches(v.Name, data.Boss) then
+                    return dungeonName
                 end
             end
         end
@@ -53,32 +46,32 @@ end
 
 -- Lấy danh sách mob hiện có trong dungeon
 function Dungeon.getMobList(currentDungeon)
-    local list = {}
+    local mobs, bosses = {}, {}
     local config = DungeonMap[currentDungeon]
-    if not config then return list end
+    if not config then return mobs, bosses end
 
-    for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-            if v.Humanoid.Health > 0 then
-                -- chỉ lấy mob thuộc dungeon hiện tại (so sánh ignore case + partial)
-                for _, mobName in ipairs(config.Mobs) do
-                    if nameMatches(v.Name, mobName) then
-                        table.insert(list, v)
-                        break
-                    end
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("Model") 
+        and v:FindFirstChild("Humanoid") 
+        and v:FindFirstChild("HumanoidRootPart") 
+        and v.Humanoid.Health > 0 then
+            for _, mobName in ipairs(config.Mobs) do
+                if nameMatches(v.Name, mobName) then
+                    table.insert(mobs, v)
                 end
-                if config.Boss and nameMatches(v.Name, config.Boss) then
-                    table.insert(list, v)
-                end
+            end
+            if config.Boss and nameMatches(v.Name, config.Boss) then
+                table.insert(bosses, v)
             end
         end
     end
-    return list
+    return mobs, bosses
 end
 
 -- Kill mob
 function Dungeon.killMob(mob)
-    while Dungeon.autoDungeon and mob 
+    while Dungeon.autoDungeon 
+    and mob 
     and mob:FindFirstChild("Humanoid") 
     and mob.Humanoid.Health > 0 do
         pcall(function()
@@ -112,7 +105,6 @@ function Dungeon.killMob(mob)
     end
 end
 
-
 -- Khi dungeon clear
 function Dungeon.handleClear()
     print("[Dungeon] Dungeon clear!")
@@ -129,18 +121,28 @@ function Dungeon.start()
         local currentDungeon = Dungeon.detectDungeon()
         print("[Dungeon] Bạn đang ở:", currentDungeon)
 
+        local emptyCount = 0
         while Dungeon.autoDungeon do
-            local mobs = Dungeon.getMobList(currentDungeon)
-            if #mobs == 0 then
-                Dungeon.handleClear()
-                break
-            end
+            local mobs, bosses = Dungeon.getMobList(currentDungeon)
 
-            for _, mob in ipairs(mobs) do
-                if not Dungeon.autoDungeon then break end
-                Dungeon.killMob(mob)
+            if #mobs == 0 and #bosses == 0 then
+                emptyCount = emptyCount + 1
+                if emptyCount >= 3 then -- chờ 3 vòng trống liên tiếp để chắc chắn
+                    Dungeon.handleClear()
+                    break
+                end
+            else
+                emptyCount = 0
+                -- Ưu tiên mob thường trước, boss sau
+                for _, mob in ipairs(mobs) do
+                    if not Dungeon.autoDungeon then break end
+                    Dungeon.killMob(mob)
+                end
+                for _, boss in ipairs(bosses) do
+                    if not Dungeon.autoDungeon then break end
+                    Dungeon.killMob(boss)
+                end
             end
-
             task.wait(0.5)
         end
         running = false
