@@ -103,7 +103,7 @@ local function patrolMaps()
             LocalPlayer.Character.HumanoidRootPart.CFrame = cf + Vector3.new(0,5,0)
             print("Đang kiểm tra map:", name)
         end
-        task.wait(3)
+        task.wait(2)
         if getBoss() then break end
     end
 end
