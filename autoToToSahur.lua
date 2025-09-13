@@ -45,7 +45,7 @@ local function getBoss()
     return nil
 end
 
--- Teleport to spawn
+-- Teleport thẳng đến map boss spawn
 local function gotoBoss(boss)
     if boss and boss:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -54,14 +54,14 @@ local function gotoBoss(boss)
         for name, cf in pairs(bossSpawns) do
             if (boss.HumanoidRootPart.Position - cf.Position).Magnitude < 150 then
                 hrp.CFrame = cf + Vector3.new(0, 5, 0)
-                print("[ToTo] Tele đến:", name)
+                print("[ToTo] Tele thẳng đến boss ở:", name)
                 break
             end
         end
     end
 end
 
--- Attack boss (giảm spam bằng cooldown nhỏ)
+-- Attack boss (cooldown chống spam)
 local lastAttack = 0
 local function attack(mob)
     if mob and mob:FindFirstChild("HumanoidRootPart") then
@@ -80,7 +80,7 @@ local function farmBoss(mob)
     if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
     local hrp = char.HumanoidRootPart
 
-    gotoBoss(mob)
+    gotoBoss(mob) -- nhảy thẳng đến map boss spawn
 
     while ToTo.auto
     and mob
@@ -99,19 +99,6 @@ local function farmBoss(mob)
     end
 end
 
--- Patrol maps (tìm boss)
-local function patrolMaps()
-    for name, cf in pairs(bossSpawns) do
-        if not ToTo.auto then break end
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = cf + Vector3.new(0,5,0)
-            print("[ToTo] Đang kiểm tra map:", name)
-        end
-        task.wait(2)
-        if getBoss() then break end
-    end
-end
-
 -- Main loop
 function ToTo.start()
     task.spawn(function()
@@ -121,7 +108,6 @@ function ToTo.start()
                 continue
             end
 
-            -- Nhân vật chưa load xong
             if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 task.wait(2)
                 continue
@@ -131,9 +117,10 @@ function ToTo.start()
             if boss then
                 farmBoss(boss)
             else
-                patrolMaps()
+                -- Không patrol nữa, chỉ quét boss trong workspace
+                print("[ToTo] Boss chưa spawn, chờ...")
+                task.wait(3)
             end
-            task.wait(1)
         end
     end)
 end
