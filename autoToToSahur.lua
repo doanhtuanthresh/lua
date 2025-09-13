@@ -1,23 +1,24 @@
 local ToTo = {}
 ToTo.auto = false
 
+-- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local TeleportService = game:GetService("TeleportService")
+local LocalPlayer = Players.LocalPlayer
 
--- Patch lỗi: tạo event giả LocalPlayerArrived
+-- Patch lỗi event
 if not TeleportService:FindFirstChild("LocalPlayerArrived") then
     local fake = Instance.new("BindableEvent")
     fake.Name = "LocalPlayerArrived"
     fake.Parent = TeleportService
-    warn("[Patch] Added fake TeleportService.LocalPlayerArrived to prevent errors")
+    warn("[Patch] Added fake TeleportService.LocalPlayerArrived")
 end
 
 -- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 
--- Vị trí spawn To To Sahur theo từng map
+-- Boss spawn points
 local bossSpawns = {
     ["Larila Desert"]    = CFrame.new(513, 105, -77),
     ["Tralalero Ocean"]  = CFrame.new(-287, 109, -1866),
@@ -44,7 +45,7 @@ local function getBoss()
     return nil
 end
 
--- Tele tới spawn map gần boss
+-- Teleport to spawn
 local function gotoBoss(boss)
     if boss and boss:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -53,19 +54,23 @@ local function gotoBoss(boss)
         for name, cf in pairs(bossSpawns) do
             if (boss.HumanoidRootPart.Position - cf.Position).Magnitude < 150 then
                 hrp.CFrame = cf + Vector3.new(0, 5, 0)
-                print("Tele đến:", name)
+                print("[ToTo] Tele đến:", name)
                 break
             end
         end
     end
 end
 
--- Request attack
+-- Attack boss (giảm spam bằng cooldown nhỏ)
+local lastAttack = 0
 local function attack(mob)
     if mob and mob:FindFirstChild("HumanoidRootPart") then
-        pcall(function()
-            RequestAttack:InvokeServer(mob.HumanoidRootPart.CFrame)
-        end)
+        if tick() - lastAttack >= 0.3 then
+            lastAttack = tick()
+            pcall(function()
+                RequestAttack:InvokeServer(mob.HumanoidRootPart.CFrame)
+            end)
+        end
     end
 end
 
@@ -75,16 +80,15 @@ local function farmBoss(mob)
     if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
     local hrp = char.HumanoidRootPart
 
-    gotoBoss(mob) -- Tele đến map spawn trước
+    gotoBoss(mob)
 
     while ToTo.auto
     and mob
     and mob:FindFirstChild("Humanoid")
     and mob.Humanoid.Health > 0 do
         if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            break -- nhân vật chết → dừng vòng lặp nhỏ, chờ respawn
+            break -- chờ respawn
         end
-
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
                 hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
@@ -95,29 +99,29 @@ local function farmBoss(mob)
     end
 end
 
--- Auto tele tuần tra khi không có boss
+-- Patrol maps (tìm boss)
 local function patrolMaps()
     for name, cf in pairs(bossSpawns) do
         if not ToTo.auto then break end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             LocalPlayer.Character.HumanoidRootPart.CFrame = cf + Vector3.new(0,5,0)
-            print("Đang kiểm tra map:", name)
+            print("[ToTo] Đang kiểm tra map:", name)
         end
-        task.wait(2)
+        task.wait(2.5)
         if getBoss() then break end
     end
 end
 
--- Auto vòng lặp (luôn chạy khi bật toggle)
+-- Main loop
 function ToTo.start()
     task.spawn(function()
         while ToTo.auto do
             if game.PlaceId ~= 111989938562194 then
-                task.wait(2)
+                task.wait(3)
                 continue
             end
 
-            -- chờ nhân vật tồn tại
+            -- Nhân vật chưa load xong
             if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 task.wait(2)
                 continue
@@ -129,9 +133,9 @@ function ToTo.start()
             else
                 patrolMaps()
             end
+            task.wait(1)
         end
     end)
 end
 
--- Không cần CharacterAdded nữa vì vòng lặp chính tự chờ respawn
 return ToTo
