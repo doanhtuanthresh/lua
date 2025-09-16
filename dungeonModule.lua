@@ -6,9 +6,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Remote
+-- Remotes
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 local PlayAgainPressed = ReplicatedStorage.Packages.Knit.Services.DungeonService.RF.PlayAgainPressed
+local ReplayVoteCast = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.ReplayVoteCast
 
 -- tìm mob gần nhất (chỉ lấy NPC/quái, bỏ toàn bộ player)
 local function getNearestMob()
@@ -37,7 +38,7 @@ local function getNearestMob()
     return nearest
 end
 
--- request attack mob
+-- request attack mob (dùng InvokeServer với CFrame mob)
 local function attackMob(mob)
     if RequestAttack and mob and mob:FindFirstChild("HumanoidRootPart") then
         pcall(function()
@@ -85,17 +86,20 @@ function Dungeon.start()
     end)
 end
 
--- bật auto play again
+-- bật auto play again (dùng sự kiện server)
 function Dungeon.enableAutoPlayAgain()
     Dungeon.autoPlayAgain = true
-    task.spawn(function()
-        while Dungeon.autoPlayAgain do
-            pcall(function()
-                PlayAgainPressed:InvokeServer()
-            end)
-            task.wait(3) -- mỗi 3 giây thử nhấn Play Again
-        end
-    end)
+
+    if not Dungeon._replayConn then
+        Dungeon._replayConn = ReplayVoteCast.OnClientEvent:Connect(function(playerWhoTriggered)
+            if Dungeon.autoPlayAgain then
+                print("Dungeon kết thúc → auto chọn Play Again")
+                pcall(function()
+                    PlayAgainPressed:InvokeServer()
+                end)
+            end
+        end)
+    end
 end
 
 function Dungeon.disableAutoPlayAgain()
