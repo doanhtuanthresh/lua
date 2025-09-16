@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
-local ReplayVoteCast = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.ReplayVoteCast
+local PlayAgainPressed = ReplicatedStorage.Packages.Knit.Services.DungeonService.RF.PlayAgainPressed
 
 -- tìm mob gần nhất (chỉ lấy NPC/quái, bỏ toàn bộ player)
 local function getNearestMob()
@@ -24,8 +24,7 @@ local function getNearestMob()
         and obj:FindFirstChild("Humanoid") 
         and obj:FindFirstChild("HumanoidRootPart") 
         and obj.Humanoid.Health > 0 
-        and not Players:GetPlayerFromCharacter(obj) -- loại bỏ player
-        then
+        and not Players:GetPlayerFromCharacter(obj) then
             local mobHrp = obj.HumanoidRootPart
             local d = (hrp.Position - mobHrp.Position).Magnitude
             if d < dist then
@@ -38,7 +37,7 @@ local function getNearestMob()
     return nearest
 end
 
--- request attack mob (dùng InvokeServer với CFrame mob)
+-- request attack mob
 local function attackMob(mob)
     if RequestAttack and mob and mob:FindFirstChild("HumanoidRootPart") then
         pcall(function()
@@ -51,7 +50,6 @@ end
 local function farmMob(mob)
     local char = LocalPlayer.Character
     if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
-
     local hrp = char.HumanoidRootPart
 
     while Dungeon.autoDungeon 
@@ -61,7 +59,6 @@ local function farmMob(mob)
         if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             break
         end
-
         pcall(function()
             local mobHrp = mob:FindFirstChild("HumanoidRootPart")
             if mobHrp then
@@ -94,9 +91,9 @@ function Dungeon.enableAutoPlayAgain()
     task.spawn(function()
         while Dungeon.autoPlayAgain do
             pcall(function()
-                ReplayVoteCast:FireServer(LocalPlayer)
+                PlayAgainPressed:InvokeServer()
             end)
-            task.wait(2) -- spam vote mỗi 2 giây
+            task.wait(3) -- mỗi 3 giây thử nhấn Play Again
         end
     end)
 end
