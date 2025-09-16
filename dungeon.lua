@@ -19,7 +19,7 @@ local MainTab = Window:MakeTab({
     PremiumOnly = false
 })
 
-
+-- Toggle Auto Dungeons
 MainTab:AddToggle({
     Name = "Auto Dungeons",
     Default = false,
@@ -31,25 +31,30 @@ MainTab:AddToggle({
     end
 })
 
+-- Toggle Auto Replay Dungeon
 MainTab:AddToggle({
-    Name = "Auto Return",
-    Default = Dungeon.autoReturn,
+    Name = "Auto Play Again",
+    Default = false,
     Callback = function(Value)
-        Dungeon.autoReturn = Value
+        if Value then
+            Dungeon.enableAutoPlayAgain()
+        else
+            Dungeon.disableAutoPlayAgain()
+        end
     end
 })
 
 -- Toggle Speed
-    MainTab:AddToggle({
-        Name = "⚡ Tăng tốc",
-        Default = false,
-        Callback = function(Value)
-            if Value then
-                Speed.set(150) -- chỉnh số tuỳ thích
-            else
-                Speed.reset()
-            end
+MainTab:AddToggle({
+    Name = "⚡ Tăng tốc",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            Speed.set(150) -- chỉnh số tuỳ thích
+        else
+            Speed.reset()
         end
-    })
+    end
+})
 
 OrionLib:Init()
