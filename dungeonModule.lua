@@ -2,11 +2,12 @@ local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = false
 
-
--- tìm mob gần nhất (bỏ check theo list, chỉ lọc quái thực sự)
+-- tìm mob gần nhất (chỉ lấy NPC/quái, bỏ toàn bộ player)
 local function getNearestMob()
     local player = game.Players.LocalPlayer
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil end
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then 
+        return nil 
+    end
 
     local hrp = player.Character.HumanoidRootPart
     local nearest, dist = nil, math.huge
@@ -15,16 +16,14 @@ local function getNearestMob()
         if obj:IsA("Model") 
         and obj:FindFirstChild("Humanoid") 
         and obj:FindFirstChild("HumanoidRootPart") 
-        and obj.Humanoid.Health > 0 then
-            
-            -- bỏ qua chính player và người chơi khác
-            if not game.Players:GetPlayerFromCharacter(obj) then
-                local mobHrp = obj.HumanoidRootPart
-                local d = (hrp.Position - mobHrp.Position).Magnitude
-                if d < dist then
-                    nearest = obj
-                    dist = d
-                end
+        and obj.Humanoid.Health > 0 
+        and not game.Players:GetPlayerFromCharacter(obj) -- loại bỏ player
+        then
+            local mobHrp = obj.HumanoidRootPart
+            local d = (hrp.Position - mobHrp.Position).Magnitude
+            if d < dist then
+                nearest = obj
+                dist = d
             end
         end
     end
@@ -53,9 +52,10 @@ local function farmMob(mob)
     and mob:FindFirstChild("Humanoid") 
     and mob.Humanoid.Health > 0 do
         pcall(function()
-            if mob:FindFirstChild("HumanoidRootPart") then
+            local mobHrp = mob:FindFirstChild("HumanoidRootPart")
+            if mobHrp then
                 -- TP giữ khoảng cách 3 stud sau lưng mob
-                hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-3)
+                hrp.CFrame = mobHrp.CFrame * CFrame.new(0,0,-3)
                 -- Tấn công
                 attackMob(mob)
             end
