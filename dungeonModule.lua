@@ -1,12 +1,12 @@
 local Dungeon = {}
 Dungeon.autoDungeon = false
-Dungeon.autoPlayAgain = false -- auto vote chơi lại
+Dungeon.autoPlayAgain = false
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Remotes
+-- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 local ReplayVoteCast = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.ReplayVoteCast
 
@@ -65,9 +65,7 @@ local function farmMob(mob)
         pcall(function()
             local mobHrp = mob:FindFirstChild("HumanoidRootPart")
             if mobHrp then
-                -- TP giữ khoảng cách 3 stud sau lưng mob
                 hrp.CFrame = mobHrp.CFrame * CFrame.new(0,0,-3)
-                -- Tấn công
                 attackMob(mob)
             end
         end)
@@ -83,26 +81,28 @@ function Dungeon.start()
             if mob then
                 farmMob(mob)
             else
-                task.wait(0.5) -- nghỉ nếu không có mob
+                task.wait(0.5)
             end
             task.wait(0.1)
         end
     end)
 end
 
--- auto vote replay dungeon
+-- bật auto play again
 function Dungeon.enableAutoPlayAgain()
     Dungeon.autoPlayAgain = true
+    task.spawn(function()
+        while Dungeon.autoPlayAgain do
+            pcall(function()
+                ReplayVoteCast:FireServer(LocalPlayer)
+            end)
+            task.wait(2) -- spam vote mỗi 2 giây
+        end
+    end)
 end
 
 function Dungeon.disableAutoPlayAgain()
     Dungeon.autoPlayAgain = false
 end
-
-ReplayVoteCast.OnClientEvent:Connect(function(player)
-    if Dungeon.autoPlayAgain and LocalPlayer then
-        firesignal(ReplayVoteCast.OnClientEvent, LocalPlayer)
-    end
-end)
 
 return Dungeon
