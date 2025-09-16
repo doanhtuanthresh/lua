@@ -2,16 +2,8 @@ local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = false
 
--- phát hiện dungeon hiện tại
-function Dungeon.detectDungeon()
-    local map = game.Workspace:FindFirstChild("Map")
-    if map then
-        return map.Name
-    end
-    return "Không xác định"
-end
 
--- tìm mob gần nhất (bỏ check tên, cứ mob có Humanoid là kill)
+-- tìm mob gần nhất (bỏ check theo list, chỉ lọc quái thực sự)
 local function getNearestMob()
     local player = game.Players.LocalPlayer
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil end
@@ -20,15 +12,19 @@ local function getNearestMob()
     local nearest, dist = nil, math.huge
 
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model")
-        and obj:FindFirstChild("Humanoid")
-        and obj:FindFirstChild("HumanoidRootPart")
+        if obj:IsA("Model") 
+        and obj:FindFirstChild("Humanoid") 
+        and obj:FindFirstChild("HumanoidRootPart") 
         and obj.Humanoid.Health > 0 then
-            local mobHrp = obj.HumanoidRootPart
-            local d = (hrp.Position - mobHrp.Position).Magnitude
-            if d < dist then
-                nearest = obj
-                dist = d
+            
+            -- bỏ qua chính player và người chơi khác
+            if not game.Players:GetPlayerFromCharacter(obj) then
+                local mobHrp = obj.HumanoidRootPart
+                local d = (hrp.Position - mobHrp.Position).Magnitude
+                if d < dist then
+                    nearest = obj
+                    dist = d
+                end
             end
         end
     end
@@ -52,9 +48,9 @@ local function farmMob(mob)
 
     local hrp = char.HumanoidRootPart
 
-    while Dungeon.autoDungeon
-    and mob
-    and mob:FindFirstChild("Humanoid")
+    while Dungeon.autoDungeon 
+    and mob 
+    and mob:FindFirstChild("Humanoid") 
     and mob.Humanoid.Health > 0 do
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
