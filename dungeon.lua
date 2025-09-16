@@ -2,8 +2,11 @@ local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jens
 
 -- Require dungeonModule
 local Dungeon = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/dungeonModule.lua"))()
-
 local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
+
+-- Biến toàn cục lưu trạng thái
+getgenv().AutoDungeonState = getgenv().AutoDungeonState or false
+getgenv().AutoPlayAgainState = getgenv().AutoPlayAgainState or false
 
 -- GUI
 local Window = OrionLib:MakeWindow({
@@ -22,8 +25,9 @@ local MainTab = Window:MakeTab({
 -- Toggle Auto Dungeons
 MainTab:AddToggle({
     Name = "Auto Dungeons",
-    Default = false,
+    Default = getgenv().AutoDungeonState,
     Callback = function(Value)
+        getgenv().AutoDungeonState = Value
         Dungeon.autoDungeon = Value
         if Value then
             Dungeon.start()
@@ -34,8 +38,9 @@ MainTab:AddToggle({
 -- Toggle Auto Replay Dungeon
 MainTab:AddToggle({
     Name = "Auto Play Again",
-    Default = false,
+    Default = getgenv().AutoPlayAgainState,
     Callback = function(Value)
+        getgenv().AutoPlayAgainState = Value
         if Value then
             Dungeon.enableAutoPlayAgain()
         else
@@ -56,5 +61,15 @@ MainTab:AddToggle({
         end
     end
 })
+
+-- Tự bật lại nếu đã bật từ lần trước
+if getgenv().AutoDungeonState then
+    Dungeon.autoDungeon = true
+    Dungeon.start()
+end
+
+if getgenv().AutoPlayAgainState then
+    Dungeon.enableAutoPlayAgain()
+end
 
 OrionLib:Init()
