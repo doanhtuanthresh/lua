@@ -4,25 +4,6 @@ local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jens
 local Dungeon = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/dungeonModule.lua"))()
 local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
 
--- Biến toàn cục lưu trạng thái
-getgenv().AutoDungeonState = getgenv().AutoDungeonState or false
-getgenv().AutoPlayAgainState = getgenv().AutoPlayAgainState or false
-
--- Hàm lưu config
-local HttpService = game:GetService("HttpService")
-local configFile = "DungeonScript/config.json"
-
-local function saveConfig()
-    local data = {
-        autoDungeon = getgenv().AutoDungeonState,
-        autoPlayAgain = getgenv().AutoPlayAgainState
-    }
-    if not isfolder("DungeonScript") then
-        makefolder("DungeonScript")
-    end
-    writefile(configFile, HttpService:JSONEncode(data))
-end
-
 -- GUI
 local Window = OrionLib:MakeWindow({
     Name = "NOKM",
@@ -40,29 +21,25 @@ local MainTab = Window:MakeTab({
 -- Toggle Auto Dungeons
 MainTab:AddToggle({
     Name = "Auto Dungeons",
-    Default = getgenv().AutoDungeonState,
+    Default = false,
     Callback = function(Value)
-        getgenv().AutoDungeonState = Value
         Dungeon.autoDungeon = Value
         if Value then
             Dungeon.start()
         end
-        saveConfig()
     end
 })
 
 -- Toggle Auto Replay Dungeon
 MainTab:AddToggle({
     Name = "Auto Play Again",
-    Default = getgenv().AutoPlayAgainState,
+    Default = false,
     Callback = function(Value)
-        getgenv().AutoPlayAgainState = Value
         if Value then
             Dungeon.enableAutoPlayAgain()
         else
             Dungeon.disableAutoPlayAgain()
         end
-        saveConfig()
     end
 })
 
@@ -78,15 +55,5 @@ MainTab:AddToggle({
         end
     end
 })
-
--- Tự bật lại nếu đã bật từ lần trước
-if getgenv().AutoDungeonState then
-    Dungeon.autoDungeon = true
-    Dungeon.start()
-end
-
-if getgenv().AutoPlayAgainState then
-    Dungeon.enableAutoPlayAgain()
-end
 
 OrionLib:Init()
