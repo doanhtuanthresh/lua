@@ -1,13 +1,14 @@
 local Dungeon = {}
 Dungeon.autoDungeon = false
-Dungeon.autoReturn = false
+Dungeon.autoPlayAgain = false -- auto vote chơi lại
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Remote
+-- Remotes
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
+local ReplayVoteCast = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.ReplayVoteCast
 
 -- tìm mob gần nhất (chỉ lấy NPC/quái, bỏ toàn bộ player)
 local function getNearestMob()
@@ -88,5 +89,20 @@ function Dungeon.start()
         end
     end)
 end
+
+-- auto vote replay dungeon
+function Dungeon.enableAutoPlayAgain()
+    Dungeon.autoPlayAgain = true
+end
+
+function Dungeon.disableAutoPlayAgain()
+    Dungeon.autoPlayAgain = false
+end
+
+ReplayVoteCast.OnClientEvent:Connect(function(player)
+    if Dungeon.autoPlayAgain and LocalPlayer then
+        firesignal(ReplayVoteCast.OnClientEvent, LocalPlayer)
+    end
+end)
 
 return Dungeon
