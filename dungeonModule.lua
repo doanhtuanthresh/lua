@@ -2,14 +2,20 @@ local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = false
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Remote
+local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
+
 -- tìm mob gần nhất (chỉ lấy NPC/quái, bỏ toàn bộ player)
 local function getNearestMob()
-    local player = game.Players.LocalPlayer
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then 
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
         return nil 
     end
 
-    local hrp = player.Character.HumanoidRootPart
+    local hrp = LocalPlayer.Character.HumanoidRootPart
     local nearest, dist = nil, math.huge
 
     for _, obj in ipairs(workspace:GetDescendants()) do
@@ -17,7 +23,7 @@ local function getNearestMob()
         and obj:FindFirstChild("Humanoid") 
         and obj:FindFirstChild("HumanoidRootPart") 
         and obj.Humanoid.Health > 0 
-        and not game.Players:GetPlayerFromCharacter(obj) -- loại bỏ player
+        and not Players:GetPlayerFromCharacter(obj) -- loại bỏ player
         then
             local mobHrp = obj.HumanoidRootPart
             local d = (hrp.Position - mobHrp.Position).Magnitude
@@ -31,18 +37,18 @@ local function getNearestMob()
     return nearest
 end
 
--- request attack mob
+-- request attack mob (dùng InvokeServer với CFrame mob)
 local function attackMob(mob)
-    local remote = game.ReplicatedStorage:FindFirstChild("RequestAttack")
-    if remote and mob and mob:FindFirstChild("HumanoidRootPart") then
-        remote:FireServer(mob)
+    if RequestAttack and mob and mob:FindFirstChild("HumanoidRootPart") then
+        pcall(function()
+            RequestAttack:InvokeServer(mob.HumanoidRootPart.CFrame)
+        end)
     end
 end
 
 -- teleport giữ sát mob + attack liên tục
 local function farmMob(mob)
-    local player = game.Players.LocalPlayer
-    local char = player.Character
+    local char = LocalPlayer.Character
     if not (char and char:FindFirstChild("HumanoidRootPart")) then return end
 
     local hrp = char.HumanoidRootPart
@@ -51,6 +57,10 @@ local function farmMob(mob)
     and mob 
     and mob:FindFirstChild("Humanoid") 
     and mob.Humanoid.Health > 0 do
+        if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            break
+        end
+
         pcall(function()
             local mobHrp = mob:FindFirstChild("HumanoidRootPart")
             if mobHrp then
@@ -60,7 +70,7 @@ local function farmMob(mob)
                 attackMob(mob)
             end
         end)
-        task.wait(0.2)
+        task.wait(0.3)
     end
 end
 
@@ -71,8 +81,10 @@ function Dungeon.start()
             local mob = getNearestMob()
             if mob then
                 farmMob(mob)
+            else
+                task.wait(0.5) -- nghỉ nếu không có mob
             end
-            task.wait(0.3)
+            task.wait(0.1)
         end
     end)
 end
