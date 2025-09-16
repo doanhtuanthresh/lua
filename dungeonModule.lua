@@ -2,15 +2,6 @@ local Dungeon = {}
 Dungeon.autoDungeon = false
 Dungeon.autoReturn = false
 
--- danh sách mob đã biết (cứ thêm tên mob vào list này)
-local MobList = {
-    "Tang Tang Tang Tang Kelentang",
-    "Orc",
-    "Demon",
-    "SlimeBoss",
-    "Skeleton"
-}
-
 -- phát hiện dungeon hiện tại
 function Dungeon.detectDungeon()
     local map = game.Workspace:FindFirstChild("Map")
@@ -20,7 +11,7 @@ function Dungeon.detectDungeon()
     return "Không xác định"
 end
 
--- tìm mob gần nhất dựa trên list
+-- tìm mob gần nhất (bỏ check tên, cứ mob có Humanoid là kill)
 local function getNearestMob()
     local player = game.Players.LocalPlayer
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil end
@@ -29,20 +20,15 @@ local function getNearestMob()
     local nearest, dist = nil, math.huge
 
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") 
-        and obj:FindFirstChild("Humanoid") 
-        and obj:FindFirstChild("HumanoidRootPart") 
+        if obj:IsA("Model")
+        and obj:FindFirstChild("Humanoid")
+        and obj:FindFirstChild("HumanoidRootPart")
         and obj.Humanoid.Health > 0 then
-            -- check tên mob có chứa keyword trong MobList không
-            for _, keyword in ipairs(MobList) do
-                if string.find(string.lower(obj.Name), string.lower(keyword)) then
-                    local mobHrp = obj.HumanoidRootPart
-                    local d = (hrp.Position - mobHrp.Position).Magnitude
-                    if d < dist then
-                        nearest = obj
-                        dist = d
-                    end
-                end
+            local mobHrp = obj.HumanoidRootPart
+            local d = (hrp.Position - mobHrp.Position).Magnitude
+            if d < dist then
+                nearest = obj
+                dist = d
             end
         end
     end
@@ -66,9 +52,9 @@ local function farmMob(mob)
 
     local hrp = char.HumanoidRootPart
 
-    while Dungeon.autoDungeon 
-    and mob 
-    and mob:FindFirstChild("Humanoid") 
+    while Dungeon.autoDungeon
+    and mob
+    and mob:FindFirstChild("Humanoid")
     and mob.Humanoid.Health > 0 do
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
