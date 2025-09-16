@@ -9,7 +9,7 @@ local LocalPlayer = Players.LocalPlayer
 -- Remotes
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 local PlayAgainPressed = ReplicatedStorage.Packages.Knit.Services.DungeonService.RF.PlayAgainPressed
-local ReplayVoteCast = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.ReplayVoteCast
+local DisplayResults = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.DisplayResults
 
 -- tìm mob gần nhất (chỉ lấy NPC/quái, bỏ toàn bộ player)
 local function getNearestMob()
@@ -91,7 +91,7 @@ function Dungeon.enableAutoPlayAgain()
     Dungeon.autoPlayAgain = true
 
     if not Dungeon._replayConn then
-        Dungeon._replayConn = ReplayVoteCast.OnClientEvent:Connect(function(playerWhoTriggered)
+        Dungeon._replayConn = DisplayResults.OnClientEvent:Connect(function(...)
             if Dungeon.autoPlayAgain then
                 print("Dungeon kết thúc → auto chọn Play Again")
                 pcall(function()
