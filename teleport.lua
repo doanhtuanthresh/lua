@@ -76,5 +76,36 @@ function Teleport.teleportTo(folder, name, useSpawn)
     end
 end
 
+-- Lấy danh sách tất cả To To Sahur trong workspace
+function Teleport.getBosses()
+    local list = {}
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("Model") and string.find(obj.Name, "To To Sahur") then
+            table.insert(list, obj.Name)
+        end
+    end
+    if #list == 0 then
+        list = {"<Không có boss>"}
+    end
+    return list
+end
+
+-- Teleport tới 1 boss cụ thể theo tên
+function Teleport.teleportToBoss(name)
+    if not name or name == "<Không có boss>" then return end
+    local boss = workspace:FindFirstChild(name)
+    if not boss then return end
+    local part = boss.PrimaryPart 
+        or boss:FindFirstChild("HumanoidRootPart")
+        or boss:FindFirstChildWhichIsA("BasePart")
+    if part then
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = part.CFrame * CFrame.new(0, 0, 15)
+        end
+    end
+end
+
+
 
 return Teleport
