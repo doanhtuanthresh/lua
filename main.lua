@@ -174,7 +174,7 @@ if game.GameId == 7332711118 then
         end
     })
 
-    -- Boss teleport
+    -- Boss teleport dropdown
 local BossDropdown = TeleTab:AddDropdown({
     Name = "Chọn To To Sahur",
     Default = "",
@@ -183,11 +183,28 @@ local BossDropdown = TeleTab:AddDropdown({
 })
 
 TeleTab:AddButton({
-    Name = "📍 Teleport tới Boss",
+    Name = "📍 Teleport tới Boss đã chọn",
     Callback = function()
         Teleport.teleportToBoss(_G.selBoss)
     end
 })
+
+-- 🟢 Tự động cập nhật dropdown khi boss spawn
+Teleport.listenBossSpawn(function(boss)
+    OrionLib:MakeNotification({
+        Name = "Boss Spawn",
+        Content = boss.Name .. " vừa xuất hiện!",
+        Time = 3
+    })
+
+    -- Refresh dropdown options
+    local newList = Teleport.getBosses()
+    pcall(function() BossDropdown:Refresh(newList, true) end)
+
+    -- Teleport ngay tới boss mới spawn
+    Teleport.teleportToBoss(boss.Name)
+end)
+
 
 
     OrionLib:Init()
