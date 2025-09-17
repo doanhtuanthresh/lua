@@ -174,5 +174,21 @@ if game.GameId == 7332711118 then
         end
     })
 
+    -- Boss teleport
+local BossDropdown = TeleTab:AddDropdown({
+    Name = "Chọn To To Sahur",
+    Default = "",
+    Options = Teleport.getBosses(),
+    Callback = function(v) _G.selBoss = v end
+})
+
+TeleTab:AddButton({
+    Name = "📍 Teleport tới Boss",
+    Callback = function()
+        Teleport.teleportToBoss(_G.selBoss)
+    end
+})
+
+
     OrionLib:Init()
 end
