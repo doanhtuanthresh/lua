@@ -76,25 +76,5 @@ function Teleport.teleportTo(folder, name, useSpawn)
     end
 end
 
--- Quét toàn bộ boss có Humanoid và máu cao (WorldBoss / To To Sahur)
-function Teleport.getBosses()
-    local bosses, seen = {}, {}
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model")
-        and obj:FindFirstChildOfClass("Humanoid")
-        and obj:FindFirstChild("HumanoidRootPart") then
-            local hum = obj:FindFirstChildOfClass("Humanoid")
-            if hum.Health > 0 and hum.MaxHealth > 5000 and not seen[obj.Name] then
-                table.insert(bosses, obj.Name)
-                seen[obj.Name] = true
-            end
-        end
-    end
-    if #bosses == 0 then
-        bosses = {"<Không có boss>"}
-    end
-    return bosses
-end
-
 
 return Teleport
