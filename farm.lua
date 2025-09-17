@@ -18,17 +18,18 @@ end
 -- Lấy MonsterService (Knit)
 local function getMonsterService()
     local rs = game:GetService("ReplicatedStorage")
-    local knit = rs:WaitForChild("Packages"):WaitForChild("Knit")
-    local service = knit:WaitForChild("Services"):WaitForChild("MonsterService")
-    return service and service:WaitForChild("RF")
+    local knit = rs:WaitForChild("Packages"):WaitForChild("Knit", 5)
+    if not knit then return nil end
+    local service = knit:WaitForChild("Services"):FindFirstChild("MonsterService")
+    return service and service:FindFirstChild("RF")
 end
 
 -- Lấy danh sách mob khả dụng
 function Farm.getMobList()
     local list, seen = {}, {}
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") 
-        and v:FindFirstChildOfClass("Humanoid") 
+        if v:IsA("Model")
+        and v:FindFirstChildOfClass("Humanoid")
         and v:FindFirstChild("HumanoidRootPart") then
             local hum = v:FindFirstChildOfClass("Humanoid")
             if hum.Health > 0 and hum.WalkSpeed > 0 and not seen[v.Name] then
@@ -49,9 +50,15 @@ function Farm.start()
     autofarmRunning = true
 
     task.spawn(function()
+        if not Farm.selectedMob then
+            warn("[Farm] Bạn chưa chọn quái để farm.")
+            autofarmRunning = false
+            return
+        end
+
         local monsterService = getMonsterService()
         if not monsterService or not monsterService:FindFirstChild("RequestAttack") then
-            warn("Không tìm thấy MonsterService hoặc RequestAttack.")
+            warn("[Farm] Không tìm thấy MonsterService hoặc RequestAttack.")
             autofarmRunning = false
             return
         end
@@ -62,8 +69,8 @@ function Farm.start()
             -- Tìm mob được chọn
             local targetMob
             for _, v in ipairs(workspace:GetDescendants()) do
-                if v:IsA("Model") 
-                and v.Name == Farm.selectedMob 
+                if v:IsA("Model")
+                and v.Name == Farm.selectedMob
                 and v:FindFirstChildOfClass("Humanoid") then
                     local hum = v:FindFirstChildOfClass("Humanoid")
                     if hum.Health > 0 then
@@ -78,12 +85,12 @@ function Farm.start()
                 if char and char.PrimaryPart then
                     -- Teleport tới gần mob
                     char.PrimaryPart.CFrame = targetMob.PrimaryPart.CFrame * CFrame.new(0,0,15)
-                    
-                    -- Tấn công liên tục tới khi mob chết
-                    while Farm.autofarm 
-                    and targetMob 
-                    and targetMob.Parent 
-                    and targetMob:FindFirstChildOfClass("Humanoid") 
+
+                    -- Tấn công liên tục tới khi mob chết hoặc dừng toggle
+                    while Farm.autofarm
+                    and targetMob
+                    and targetMob.Parent
+                    and targetMob:FindFirstChildOfClass("Humanoid")
                     and targetMob:FindFirstChildOfClass("Humanoid").Health > 0 do
                         pcall(function()
                             monsterService.RequestAttack:InvokeServer(targetMob.PrimaryPart.CFrame)
