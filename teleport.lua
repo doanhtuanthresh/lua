@@ -76,7 +76,7 @@ function Teleport.teleportTo(folder, name, useSpawn)
     end
 end
 
--- Lấy danh sách tất cả To To Sahur trong workspace
+-- Lấy danh sách tất cả To To Sahur hiện có trong workspace
 function Teleport.getBosses()
     local list = {}
     for _, obj in ipairs(workspace:GetChildren()) do
@@ -106,6 +106,18 @@ function Teleport.teleportToBoss(name)
     end
 end
 
-
+-- 🟢 Theo dõi boss mới spawn từ server Remote
+function Teleport.listenBossSpawn(onSpawn)
+    local monsterService = game.ReplicatedStorage.Packages.Knit.Services.MonsterService
+    local newMonster = monsterService:WaitForChild("RE"):WaitForChild("NewMonster")
+    newMonster.OnClientEvent:Connect(function(data)
+        if typeof(data) == "Instance" and data:IsA("Model") then
+            if string.find(data.Name, "To To Sahur") then
+                task.wait(1)
+                onSpawn(data)
+            end
+        end
+    end)
+end
 
 return Teleport
