@@ -2,14 +2,11 @@
 if game.GameId == 7332711118 then
     local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
     
-    -- import Farm module 
+    -- import modules
     local Farm = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/farm.lua"))()
-
-    -- import Speed module
     local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
-
-    -- import ToToSahur module
     local ToTo = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/autoToToSahur.lua"))()
+    local Teleport = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/teleport.lua"))()
 
     local Window = OrionLib:MakeWindow({
         Name = "NOKM",
@@ -18,6 +15,9 @@ if game.GameId == 7332711118 then
         ConfigFolder = "OrionTest"
     })
 
+    -----------------------------
+    -- TAB: Auto Farm
+    -----------------------------
     local FarmTab = Window:MakeTab({
         Name = "Auto Farm",
         Icon = "",
@@ -63,20 +63,19 @@ if game.GameId == 7332711118 then
 
     -- Toggle AutoFarm
     FarmTab:AddToggle({
-    Name = "Auto Farm",
-    Default = false,
-    Callback = function(Value)
-        Farm.autofarm = Value
-        if Value then
-            if Farm.selectedMob then
-                Farm.start()
-            else
-                warn("[GUI] Bạn chưa chọn quái để farm.")
+        Name = "Auto Farm",
+        Default = false,
+        Callback = function(Value)
+            Farm.autofarm = Value
+            if Value then
+                if Farm.selectedMob then
+                    Farm.start()
+                else
+                    warn("[GUI] Bạn chưa chọn quái để farm.")
+                end
             end
         end
-    end
-})
-
+    })
 
     -- Toggle Speed
     FarmTab:AddToggle({
@@ -84,14 +83,69 @@ if game.GameId == 7332711118 then
         Default = false,
         Callback = function(Value)
             if Value then
-                Speed.set(150) -- chỉnh số tuỳ thích
+                Speed.set(150)
             else
                 Speed.reset()
             end
         end
     })
 
-    -- Tab Auto To To Sahur
+    -----------------------------
+    -- TAB: Teleport
+    -----------------------------
+    local TeleTab = Window:MakeTab({
+        Name = "Teleport",
+        Icon = "",
+        PremiumOnly = false
+    })
+
+    -- Egg teleport
+    local EggDropdown = TeleTab:AddDropdown({
+        Name = "Chọn Egg",
+        Default = "",
+        Options = Teleport.getEggs(),
+        Callback = function(v) _G.selEgg = v end
+    })
+    TeleTab:AddButton({
+        Name = "🟢 Teleport tới Egg",
+        Callback = function()
+            Teleport.teleportTo(workspace.GameAssets.Eggs, _G.selEgg)
+        end
+    })
+
+    -- Map teleport
+    local MapDropdown = TeleTab:AddDropdown({
+        Name = "Chọn Map",
+        Default = "",
+        Options = Teleport.getMaps(),
+        Callback = function(v) _G.selMap = v end
+    })
+    TeleTab:AddButton({
+        Name = "🟢 Teleport tới Map",
+        Callback = function()
+            Teleport.teleportTo(workspace.Maps, _G.selMap, true)
+        end
+    })
+
+    -- Upgrade teleport
+    local UpgDropdown = TeleTab:AddDropdown({
+        Name = "Chọn Upgrade",
+        Default = "",
+        Options = Teleport.getUpgrades(),
+        Callback = function(v) _G.selUpg = v end
+    })
+    TeleTab:AddButton({
+        Name = "🟢 Teleport tới Upgrade",
+        Callback = function()
+            Teleport.teleportTo(workspace.GameAssets.WorldUpgrades, _G.selUpg)
+        end
+    })
+
+    -- Bạn có thể thêm VendingMachines, Rebirth tương tự
+
+    -----------------------------
+    -- TAB: Auto To To Sahur
+    -----------------------------
     local ToToTab = Window:MakeTab({
         Name = "Auto To To Sahur",
         Icon = "",
