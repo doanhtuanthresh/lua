@@ -63,13 +63,20 @@ if game.GameId == 7332711118 then
 
     -- Toggle AutoFarm
     FarmTab:AddToggle({
-        Name = "Auto Farm",
-        Default = false,
-        Callback = function(Value)
-            Farm.autofarm = Value
-            if Value then Farm.start() end
+    Name = "Auto Farm",
+    Default = false,
+    Callback = function(Value)
+        Farm.autofarm = Value
+        if Value then
+            if Farm.selectedMob then
+                Farm.start()
+            else
+                warn("[GUI] Bạn chưa chọn quái để farm.")
+            end
         end
-    })
+    end
+})
+
 
     -- Toggle Speed
     FarmTab:AddToggle({
