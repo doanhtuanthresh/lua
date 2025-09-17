@@ -2,16 +2,38 @@ local Farm = {}
 
 Farm.autofarm = false
 Farm.selectedMob = nil
-Farm.autoTP = true
 local autofarmRunning = false
 
--- Lấy danh sách mob
+-- Lấy character an toàn
+local function getPlayerCharacter()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    if not char or not char.Parent then
+        char = player.CharacterAdded:Wait()
+    end
+    task.wait(0.2)
+    return char
+end
+
+-- Lấy MonsterService (Knit)
+local function getMonsterService()
+    local rs = game:GetService("ReplicatedStorage")
+    local knit = rs:WaitForChild("Packages"):WaitForChild("Knit")
+    local service = knit:WaitForChild("Services"):WaitForChild("MonsterService")
+    return service and service:WaitForChild("RF")
+end
+
+-- Lấy danh sách mob khả dụng
 function Farm.getMobList()
-    local list = {}
+    local list, seen = {}, {}
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-            if v.Humanoid.Health > 0 and not table.find(list, v.Name) then
+        if v:IsA("Model") 
+        and v:FindFirstChildOfClass("Humanoid") 
+        and v:FindFirstChild("HumanoidRootPart") then
+            local hum = v:FindFirstChildOfClass("Humanoid")
+            if hum.Health > 0 and hum.WalkSpeed > 0 and not seen[v.Name] then
                 table.insert(list, v.Name)
+                seen[v.Name] = true
             end
         end
     end
@@ -25,43 +47,55 @@ end
 function Farm.start()
     if autofarmRunning then return end
     autofarmRunning = true
+
     task.spawn(function()
+        local monsterService = getMonsterService()
+        if not monsterService or not monsterService:FindFirstChild("RequestAttack") then
+            warn("Không tìm thấy MonsterService hoặc RequestAttack.")
+            autofarmRunning = false
+            return
+        end
+
         while Farm.autofarm do
             task.wait(0.5)
-            -- tìm mob mới mỗi vòng
-            local targetMob = nil
+
+            -- Tìm mob được chọn
+            local targetMob
             for _, v in ipairs(workspace:GetDescendants()) do
-                if v:IsA("Model") and v.Name == Farm.selectedMob 
-                and v:FindFirstChild("Humanoid") 
-                and v.Humanoid.Health > 0 then
-                    targetMob = v
-                    break
+                if v:IsA("Model") 
+                and v.Name == Farm.selectedMob 
+                and v:FindFirstChildOfClass("Humanoid") then
+                    local hum = v:FindFirstChildOfClass("Humanoid")
+                    if hum.Health > 0 then
+                        targetMob = v
+                        break
+                    end
                 end
             end
 
-            -- nếu tìm thấy thì TP đến mob đó
-            if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
-                local hrp = targetMob.HumanoidRootPart
-                while Farm.autofarm and targetMob 
-                and targetMob:FindFirstChild("Humanoid") 
-                and targetMob.Humanoid.Health > 0 do
-                    pcall(function()
-                        local char = game.Players.LocalPlayer.Character
-                        if char and char:FindFirstChild("HumanoidRootPart") then
-                            char.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0,0,5)
-                        end
-                        if targetMob:FindFirstChild("ClickDetector") then
-                            fireclickdetector(targetMob.ClickDetector)
-                        end
-                    end)
-                    task.wait(0.2)
+            if targetMob and targetMob.PrimaryPart then
+                local char = getPlayerCharacter()
+                if char and char.PrimaryPart then
+                    -- Teleport tới gần mob
+                    char.PrimaryPart.CFrame = targetMob.PrimaryPart.CFrame * CFrame.new(0,0,15)
+                    
+                    -- Tấn công liên tục tới khi mob chết
+                    while Farm.autofarm 
+                    and targetMob 
+                    and targetMob.Parent 
+                    and targetMob:FindFirstChildOfClass("Humanoid") 
+                    and targetMob:FindFirstChildOfClass("Humanoid").Health > 0 do
+                        pcall(function()
+                            monsterService.RequestAttack:InvokeServer(targetMob.PrimaryPart.CFrame)
+                        end)
+                        task.wait(0.1)
+                    end
                 end
-                -- hết vòng lặp này => mob chết => quay lại while ngoài để tìm mob mới
             end
         end
+
         autofarmRunning = false
     end)
 end
-
 
 return Farm
