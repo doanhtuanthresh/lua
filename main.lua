@@ -174,29 +174,5 @@ if game.GameId == 7332711118 then
         end
     })
 
-    -- Boss teleport
-local BossDropdown = TeleTab:AddDropdown({
-    Name = "Chọn Boss",
-    Default = "",
-    Options = Teleport.getBosses(),
-    Callback = function(v) _G.selBoss = v end
-})
-
-TeleTab:AddButton({
-    Name = "📍 Teleport tới Boss",
-    Callback = function()
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("Model") and obj.Name == _G.selBoss and obj.PrimaryPart then
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    char.HumanoidRootPart.CFrame = obj.PrimaryPart.CFrame * CFrame.new(0, 0, 15)
-                end
-                break
-            end
-        end
-    end
-})
-
-
     OrionLib:Init()
 end
