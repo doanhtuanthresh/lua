@@ -10,17 +10,20 @@ local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF
 
 -- 📍 Vị trí spawn To To Sahur theo từng map
 local bossSpawns = {
-    ["To To To To To To To Sahur"]                       = CFrame.new(513, 105, -77),        -- Larila Desert
-    ["To To To To To To To To Sahur"]                    = CFrame.new(-287, 109, -1866),     -- Tralalero Ocean
-    ["To To To To To To To To To Sahur"]                 = CFrame.new(-1531, 147, 1375),     -- Mount Ambalabu
-    ["To To To To To To To To To To Sahur"]               = CFrame.new(-2640, 113.7, -899),   -- Chicleteiramania
-    ["To To To To To To To To To To To Sahur"]             = CFrame.new(-2200, 291, -3756),    -- Nuclearo Core
-    ["To To To To To To To To To To To To Sahur"]           = CFrame.new(1294, -41, -4262),     -- Udin Dinlympus
-    ["To To To To To To To To To To To To To Sahur"]         = CFrame.new(-3945, 51, 934),       -- Glorbo Heights
-    ["To To To To To To To To To To To To To To Sahur"]       = CFrame.new(-1788, 199, 5011),     -- Brainrot Abyss
-    ["To To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3607, 197, 2246),     -- Bombardino Sewer
-    ["To To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-6919, 75, -2238),      -- Goaaat Galaxy
+    ["To To To To To To To Sahur"]                       = CFrame.new(513, 105, -77),        
+    ["To To To To To To To To Sahur"]                    = CFrame.new(-287, 109, -1866),     
+    ["To To To To To To To To To Sahur"]                 = CFrame.new(-1531, 147, 1375),     
+    ["To To To To To To To To To To Sahur"]               = CFrame.new(-2640, 113.7, -899),   
+    ["To To To To To To To To To To To Sahur"]             = CFrame.new(-2200, 291, -3756),    
+    ["To To To To To To To To To To To To Sahur"]           = CFrame.new(1294, -41, -4262),     
+    ["To To To To To To To To To To To To To Sahur"]         = CFrame.new(-3945, 51, 934),       
+    ["To To To To To To To To To To To To To To Sahur"]       = CFrame.new(-1788, 199, 5011),     
+    ["To To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3607, 197, 2246),     
+    ["To To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-6919, 75, -2238),      
 }
+
+-- 📋 Danh sách boss spawn bị bỏ lỡ (pending)
+local pendingBosses = {}
 
 -- 🧍 Lấy HumanoidRootPart của người chơi
 local function getHRP()
@@ -107,6 +110,16 @@ local function patrolMaps()
     end
 end
 
+-- 🟢 Theo dõi boss mới spawn để thêm vào pendingBosses
+workspace.DescendantAdded:Connect(function(obj)
+    if obj:IsA("Model") 
+    and string.find(string.lower(obj.Name), "to to sahur")
+    and obj:FindFirstChildOfClass("Humanoid") then
+        print("⚡ Phát hiện boss mới spawn:", obj.Name)
+        table.insert(pendingBosses, obj.Name)
+    end
+end)
+
 -- ♻️ Auto loop
 function ToTo.start()
     task.spawn(function()
@@ -121,10 +134,22 @@ function ToTo.start()
                 continue
             end
 
+            -- Nếu có boss đang hiện diện → farm
             local boss = getBoss()
             if boss then
                 print("🎯 Tìm thấy To To Sahur:", boss.Name)
                 farmBoss(boss)
+
+            -- Nếu không có boss hiện diện nhưng có boss pending spawn
+            elseif #pendingBosses > 0 then
+                local bossName = table.remove(pendingBosses, 1)
+                print("📦 Có boss pending:", bossName, "→ teleport tới map ngay")
+                local cf = bossSpawns[bossName]
+                if cf and getHRP() then
+                    getHRP().CFrame = cf + Vector3.new(0,5,0)
+                end
+
+            -- Nếu không có gì → patrol như cũ
             else
                 patrolMaps()
             end
