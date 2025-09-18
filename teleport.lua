@@ -1,6 +1,20 @@
 local Teleport = {}
 
--- Lấy character an toàn
+-- 📍 Bảng ánh xạ TÊN boss → vị trí map chứa boss đó
+local BossLocations = {
+    ["to to to to to to to sahur"] = CFrame.new(513, 105, -77), -- Larila Desert
+    ["to to to to to to to to sahur"] = CFrame.new(-287, 109, -1866), -- Tralalero Ocean
+    ["to to to to to to to to to sahur"] = CFrame.new(-1531, 147, 1375), -- Mount Ambalabu
+    ["to to to to to to to to to to sahur"] = CFrame.new(-2640, 113.7, -899), -- Chicleteiramania
+    ["to to to to to to to to to to to sahur"] = CFrame.new(-2200, 291, -3756), -- Nuclearo Core
+    ["to to to to to to to to to to to to sahur"] = CFrame.new(1294, -41, -4262), -- Udin Dinlympus
+    ["to to to to to to to to to to to to to sahur"] = CFrame.new(-3945, 51, 934), -- Glorbo Heights
+    ["to to to to to to to to to to to to to to sahur"] = CFrame.new(-1788, 199, 5011), -- Brainrot Abyss
+    ["to to to to to to to to to to to to to to to sahur"] = CFrame.new(-3607, 197, 2246), -- Bombardino Sewer
+    ["to to to to to to to to to to to to to to to to sahur"] = CFrame.new(-6919, 75, -2238), -- Goaaat Galaxy
+}
+
+-- 🧍 Lấy character an toàn
 local function getPlayerCharacter()
     local player = game.Players.LocalPlayer
     local char = player.Character or player.CharacterAdded:Wait()
@@ -11,7 +25,7 @@ local function getPlayerCharacter()
     return char
 end
 
--- Lấy danh sách object con trong 1 folder
+-- 🗺️ Lấy danh sách object con trong 1 folder
 local function getLocations(folder)
     local list = {}
     if folder then
@@ -27,7 +41,7 @@ local function getLocations(folder)
     return list
 end
 
--- Các hàm trả về danh sách
+-- 🗺️ Các hàm trả về danh sách
 function Teleport.getEggs()
     return getLocations(workspace:WaitForChild("GameAssets"):WaitForChild("Eggs"))
 end
@@ -48,7 +62,7 @@ function Teleport.getRebirthModels()
     return getLocations(workspace:WaitForChild("GameAssets"):WaitForChild("RebirthModels"))
 end
 
--- Lấy part đích để TP
+-- 📍 Lấy part đích để TP
 local function getTargetPart(targetModel)
     if not targetModel then return nil end
     if targetModel:IsA("BasePart") then return targetModel end
@@ -58,7 +72,7 @@ local function getTargetPart(targetModel)
         or targetModel:FindFirstChildWhichIsA("BasePart")
 end
 
--- Hàm chính để teleport
+-- ⚡ Teleport chung tới bất kỳ object nào
 function Teleport.teleportTo(folder, name, useSpawn)
     if not folder or not name or name == "<Không có vị trí>" then return end
     local model = folder:FindFirstChild(name)
@@ -76,7 +90,7 @@ function Teleport.teleportTo(folder, name, useSpawn)
     end
 end
 
--- Lấy danh sách tất cả To To Sahur hiện có trong workspace
+-- 📋 Lấy danh sách tất cả To To Sahur hiện có trong workspace
 function Teleport.getBosses()
     local list = {}
     for _, obj in ipairs(workspace:GetChildren()) do
@@ -92,7 +106,7 @@ function Teleport.getBosses()
     return list
 end
 
--- Teleport tới 1 boss cụ thể theo tên
+-- 📍 Teleport trực tiếp tới boss đang hiện diện trong workspace (nếu cùng map)
 function Teleport.teleportToBoss(name)
     if not name or name == "<Không có boss>" then return end
     local boss = workspace:FindFirstChild(name)
@@ -103,6 +117,19 @@ function Teleport.teleportToBoss(name)
         if char and char:FindFirstChild("HumanoidRootPart") then
             char.HumanoidRootPart.CFrame = part.CFrame * CFrame.new(0, 0, 15)
         end
+    end
+end
+
+-- ⚡ Teleport tới boss dựa vào tên (kể cả chưa được stream về workspace)
+function Teleport.teleportBossByName(name)
+    local cf = BossLocations[name]
+    if not cf then
+        warn("Không tìm thấy vị trí boss: " .. tostring(name))
+        return
+    end
+    local char = getPlayerCharacter()
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = cf + Vector3.new(0, 5, 0)
     end
 end
 
