@@ -4,55 +4,63 @@ ToTo.auto = false
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+
+-- Remote
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 
+-- 📍 Vị trí spawn To To Sahur theo từng map
 local bossSpawns = {
-    ["To To To To To To To Sahur"]                       = CFrame.new(513, 105, -77),
-    ["To To To To To To To To Sahur"]                    = CFrame.new(-287, 109, -1866),
-    ["To To To To To To To To To Sahur"]                 = CFrame.new(-1531, 147, 1375),
-    ["To To To To To To To To To To Sahur"]              = CFrame.new(-2640, 113.7, -899),
-    ["To To To To To To To To To To To Sahur"]           = CFrame.new(-2200, 291, -3756),
-    ["To To To To To To To To To To To To Sahur"]        = CFrame.new(1294, -41, -4262),
-    ["To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3945, 51, 934),
-    ["To To To To To To To To To To To To To To Sahur"]  = CFrame.new(-1788, 199, 5011),
-    ["To To To To To To To To To To To To To To To Sahur"]= CFrame.new(-3607, 197, 2246),
-    ["To To To To To To To To To To To To To To To To Sahur"]= CFrame.new(-6919, 75, -2238),
+    ["To To To To To To To Sahur"]                       = CFrame.new(513, 105, -77),        -- Larila Desert
+    ["To To To To To To To To Sahur"]                    = CFrame.new(-287, 109, -1866),     -- Tralalero Ocean
+    ["To To To To To To To To To Sahur"]                 = CFrame.new(-1531, 147, 1375),     -- Mount Ambalabu
+    ["To To To To To To To To To To Sahur"]               = CFrame.new(-2640, 113.7, -899),   -- Chicleteiramania
+    ["To To To To To To To To To To To Sahur"]             = CFrame.new(-2200, 291, -3756),    -- Nuclearo Core
+    ["To To To To To To To To To To To To Sahur"]           = CFrame.new(1294, -41, -4262),     -- Udin Dinlympus
+    ["To To To To To To To To To To To To To Sahur"]         = CFrame.new(-3945, 51, 934),       -- Glorbo Heights
+    ["To To To To To To To To To To To To To To Sahur"]       = CFrame.new(-1788, 199, 5011),     -- Brainrot Abyss
+    ["To To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3607, 197, 2246),     -- Bombardino Sewer
+    ["To To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-6919, 75, -2238),      -- Goaaat Galaxy
 }
 
+-- 🧍 Lấy HumanoidRootPart của người chơi
 local function getHRP()
     local char = LocalPlayer.Character
-    return char and char:FindFirstChild("HumanoidRootPart")
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        return char.HumanoidRootPart
+    end
+    return nil
 end
 
--- 📡 Quét tất cả boss sống đang tồn tại
-local function getAliveBosses()
-    local bosses = {}
+-- 📡 Tìm boss hiện có trong workspace
+local function getBoss()
     for _, obj in ipairs(workspace:GetChildren()) do
         if obj:IsA("Model")
-        and string.find(string.lower(obj.Name), "sahur") -- match tất cả To To... Sahur
+        and string.find(string.lower(obj.Name), "to to sahur")
         and obj:FindFirstChild("Humanoid")
         and obj:FindFirstChild("HumanoidRootPart")
         and obj.Humanoid.Health > 0 then
-            table.insert(bosses, obj)
+            return obj
         end
     end
-    return bosses
+    return nil
 end
 
+-- 📍 Teleport tới đúng map chứa boss (chỉ 1 lần)
 local function teleportToBossMap(boss)
     if not boss or not boss:FindFirstChild("HumanoidRootPart") then return end
     local hrp = getHRP()
     if not hrp then return end
 
-    local cf = bossSpawns[boss.Name]
-    if cf then
-        hrp.CFrame = cf + Vector3.new(0, 5, 0)
-        print("📍 Teleport tới map chứa boss:", boss.Name)
-    else
-        warn("⚠️ Không tìm thấy spawn cho boss:", boss.Name)
+    for name, cf in pairs(bossSpawns) do
+        if string.lower(name) == string.lower(boss.Name) then
+            hrp.CFrame = cf + Vector3.new(0, 5, 0)
+            print("📍 Teleport tới map chứa boss:", name)
+            break
+        end
     end
 end
 
+-- ⚔️ Gửi yêu cầu đánh boss
 local function attackBoss(mob)
     if mob and mob:FindFirstChild("HumanoidRootPart") then
         pcall(function()
@@ -61,14 +69,21 @@ local function attackBoss(mob)
     end
 end
 
+-- 💥 Farm boss khi phát hiện
 local function farmBoss(mob)
     local hrp = getHRP()
     if not hrp then return end
-    teleportToBossMap(mob)
+
+    teleportToBossMap(mob) -- chỉ gọi 1 lần trước khi đánh
     task.wait(1)
 
-    while ToTo.auto and mob and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 do
+    while ToTo.auto 
+    and mob 
+    and mob:FindFirstChild("Humanoid")
+    and mob.Humanoid.Health > 0 do
+
         if not getHRP() then break end
+
         pcall(function()
             if mob:FindFirstChild("HumanoidRootPart") then
                 hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
@@ -79,6 +94,20 @@ local function farmBoss(mob)
     end
 end
 
+-- 📍 Teleport đi tuần tra các map để tìm boss
+local function patrolMaps()
+    local hrp = getHRP()
+    if not hrp then return end
+    for name, cf in pairs(bossSpawns) do
+        if not ToTo.auto then break end
+        hrp.CFrame = cf + Vector3.new(0,5,0)
+        print("🧭 Đang tuần tra map:", name)
+        task.wait(2.5)
+        if getBoss() then break end
+    end
+end
+
+-- ♻️ Auto loop
 function ToTo.start()
     task.spawn(function()
         while ToTo.auto do
@@ -86,31 +115,21 @@ function ToTo.start()
                 task.wait(2)
                 continue
             end
+
             if not getHRP() then
                 task.wait(2)
                 continue
             end
 
-            local bosses = getAliveBosses()
-            if #bosses > 0 then
-                print("🎯 Phát hiện", #bosses, "boss To To Sahur sống.")
-                -- farm liên tục cho tới khi không còn boss
-                for _, boss in ipairs(bosses) do
-                    if not ToTo.auto then break end
-                    farmBoss(boss)
-                end
-                -- sau khi farm hết -> check lại ngay thay vì chờ lâu
-                task.wait(0.5)
+            local boss = getBoss()
+            if boss then
+                print("🎯 Tìm thấy To To Sahur:", boss.Name)
+                farmBoss(boss)
             else
-                print("🧭 Không có boss nào sống → chờ hồi sinh...")
-                task.wait(2)
+                patrolMaps()
             end
         end
     end)
-end
-
-function ToTo.stop()
-    ToTo.auto = false
 end
 
 return ToTo
