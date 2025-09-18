@@ -22,7 +22,7 @@ local function getLocations(folder)
         end
     end
     if #list == 0 then
-        table.insert(list, "<Không có vị trí>")
+        list = {"<Không có vị trí>"}
     end
     return list
 end
@@ -80,7 +80,9 @@ end
 function Teleport.getBosses()
     local list = {}
     for _, obj in ipairs(workspace:GetChildren()) do
-        if obj:IsA("Model") and string.find(obj.Name, "To To Sahur") then
+        if obj:IsA("Model") 
+        and obj:FindFirstChildOfClass("Humanoid")
+        and string.find(obj.Name, "To To Sahur") then
             table.insert(list, obj.Name)
         end
     end
@@ -95,27 +97,23 @@ function Teleport.teleportToBoss(name)
     if not name or name == "<Không có boss>" then return end
     local boss = workspace:FindFirstChild(name)
     if not boss then return end
-    local part = boss.PrimaryPart 
-        or boss:FindFirstChild("HumanoidRootPart")
-        or boss:FindFirstChildWhichIsA("BasePart")
+    local part = getTargetPart(boss)
     if part then
-        local char = game.Players.LocalPlayer.Character
+        local char = getPlayerCharacter()
         if char and char:FindFirstChild("HumanoidRootPart") then
             char.HumanoidRootPart.CFrame = part.CFrame * CFrame.new(0, 0, 15)
         end
     end
 end
 
--- 🟢 Theo dõi boss mới spawn từ server Remote
+-- 🟢 Theo dõi boss mới được stream về
 function Teleport.listenBossSpawn(onSpawn)
-    local monsterService = game.ReplicatedStorage.Packages.Knit.Services.MonsterService
-    local newMonster = monsterService:WaitForChild("RE"):WaitForChild("NewMonster")
-    newMonster.OnClientEvent:Connect(function(data)
-        if typeof(data) == "Instance" and data:IsA("Model") then
-            if string.find(data.Name, "To To Sahur") then
-                task.wait(1)
-                onSpawn(data)
-            end
+    workspace.DescendantAdded:Connect(function(obj)
+        if obj:IsA("Model") 
+        and obj:FindFirstChildOfClass("Humanoid")
+        and string.find(obj.Name, "To To Sahur") then
+            task.wait(1)
+            onSpawn(obj)
         end
     end)
 end
