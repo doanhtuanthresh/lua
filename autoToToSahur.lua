@@ -10,13 +10,13 @@ local bossSpawns = {
     ["To To To To To To To Sahur"]                       = CFrame.new(513, 105, -77),
     ["To To To To To To To To Sahur"]                    = CFrame.new(-287, 109, -1866),
     ["To To To To To To To To To Sahur"]                 = CFrame.new(-1531, 147, 1375),
-    ["To To To To To To To To To To Sahur"]               = CFrame.new(-2640, 113.7, -899),
-    ["To To To To To To To To To To To Sahur"]             = CFrame.new(-2200, 291, -3756),
-    ["To To To To To To To To To To To To Sahur"]           = CFrame.new(1294, -41, -4262),
-    ["To To To To To To To To To To To To To Sahur"]         = CFrame.new(-3945, 51, 934),
-    ["To To To To To To To To To To To To To To Sahur"]       = CFrame.new(-1788, 199, 5011),
-    ["To To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3607, 197, 2246),
-    ["To To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-6919, 75, -2238),
+    ["To To To To To To To To To To Sahur"]              = CFrame.new(-2640, 113.7, -899),
+    ["To To To To To To To To To To To Sahur"]           = CFrame.new(-2200, 291, -3756),
+    ["To To To To To To To To To To To To Sahur"]        = CFrame.new(1294, -41, -4262),
+    ["To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3945, 51, 934),
+    ["To To To To To To To To To To To To To To Sahur"]  = CFrame.new(-1788, 199, 5011),
+    ["To To To To To To To To To To To To To To To Sahur"]= CFrame.new(-3607, 197, 2246),
+    ["To To To To To To To To To To To To To To To To Sahur"]= CFrame.new(-6919, 75, -2238),
 }
 
 local function getHRP()
@@ -29,7 +29,7 @@ local function getAliveBosses()
     local bosses = {}
     for _, obj in ipairs(workspace:GetChildren()) do
         if obj:IsA("Model")
-        and string.find(string.lower(obj.Name), "to to sahur")
+        and string.find(string.lower(obj.Name), "sahur") -- match tất cả To To... Sahur
         and obj:FindFirstChild("Humanoid")
         and obj:FindFirstChild("HumanoidRootPart")
         and obj.Humanoid.Health > 0 then
@@ -44,12 +44,12 @@ local function teleportToBossMap(boss)
     local hrp = getHRP()
     if not hrp then return end
 
-    for name, cf in pairs(bossSpawns) do
-        if string.lower(name) == string.lower(boss.Name) then
-            hrp.CFrame = cf + Vector3.new(0, 5, 0)
-            print("📍 Teleport tới map chứa boss:", name)
-            break
-        end
+    local cf = bossSpawns[boss.Name]
+    if cf then
+        hrp.CFrame = cf + Vector3.new(0, 5, 0)
+        print("📍 Teleport tới map chứa boss:", boss.Name)
+    else
+        warn("⚠️ Không tìm thấy spawn cho boss:", boss.Name)
     end
 end
 
@@ -94,17 +94,23 @@ function ToTo.start()
             local bosses = getAliveBosses()
             if #bosses > 0 then
                 print("🎯 Phát hiện", #bosses, "boss To To Sahur sống.")
+                -- farm liên tục cho tới khi không còn boss
                 for _, boss in ipairs(bosses) do
                     if not ToTo.auto then break end
                     farmBoss(boss)
                 end
+                -- sau khi farm hết -> check lại ngay thay vì chờ lâu
+                task.wait(0.5)
             else
-                -- nếu muốn có patrol fallback thì thêm tại đây
                 print("🧭 Không có boss nào sống → chờ hồi sinh...")
-                task.wait(3)
+                task.wait(2)
             end
         end
     end)
+end
+
+function ToTo.stop()
+    ToTo.auto = false
 end
 
 return ToTo
