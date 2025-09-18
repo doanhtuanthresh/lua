@@ -2,18 +2,17 @@ local Teleport = {}
 
 -- 📍 Bảng ánh xạ TÊN boss → vị trí map chứa boss đó
 local BossLocations = {
-    ["to to to to to to to sahur"] = CFrame.new(513, 105, -77), -- Larila Desert
-    ["to to to to to to to to sahur"] = CFrame.new(-287, 109, -1866), -- Tralalero Ocean
-    ["to to to to to to to to to sahur"] = CFrame.new(-1531, 147, 1375), -- Mount Ambalabu
-    ["to to to to to to to to to to sahur"] = CFrame.new(-2640, 113.7, -899), -- Chicleteiramania
-    ["to to to to to to to to to to to sahur"] = CFrame.new(-2200, 291, -3756), -- Nuclearo Core
-    ["to to to to to to to to to to to to sahur"] = CFrame.new(1294, -41, -4262), -- Udin Dinlympus
-    ["to to to to to to to to to to to to to sahur"] = CFrame.new(-3945, 51, 934), -- Glorbo Heights
-    ["to to to to to to to to to to to to to to sahur"] = CFrame.new(-1788, 199, 5011), -- Brainrot Abyss
-    ["to to to to to to to to to to to to to to to sahur"] = CFrame.new(-3607, 197, 2246), -- Bombardino Sewer
-    ["to to to to to to to to to to to to to to to to sahur"] = CFrame.new(-6919, 75, -2238), -- Goaaat Galaxy
+    ["To To To To To To To Sahur"]                     = CFrame.new(513, 105, -77),       -- Larila Desert
+    ["To To To To To To To To Sahur"]                  = CFrame.new(-287, 109, -1866),    -- Tralalero Ocean
+    ["To To To To To To To To To Sahur"]               = CFrame.new(-1531, 147, 1375),    -- Mount Ambalabu
+    ["To To To To To To To To To To Sahur"]             = CFrame.new(-2640, 113.7, -899),  -- Chicleteiramania
+    ["To To To To To To To To To To To Sahur"]           = CFrame.new(-2200, 291, -3756),   -- Nuclearo Core
+    ["To To To To To To To To To To To To Sahur"]         = CFrame.new(1294, -41, -4262),    -- Udin Dinlympus
+    ["To To To To To To To To To To To To To Sahur"]       = CFrame.new(-3945, 51, 934),      -- Glorbo Heights
+    ["To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-1788, 199, 5011),    -- Brainrot Abyss
+    ["To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-3607, 197, 2246),    -- Bombardino Sewer
+    ["To To To To To To To To To To To To To To To To Sahur"] = CFrame.new(-6919, 75, -2238),   -- Goaaat Galaxy
 }
-
 -- 🧍 Lấy character an toàn
 local function getPlayerCharacter()
     local player = game.Players.LocalPlayer
