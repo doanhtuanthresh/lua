@@ -10,16 +10,16 @@ local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF
 
 -- 📍 Vị trí spawn To To Sahur theo từng map
 local bossSpawns = {
-    ["To To To To To To To Sahur"]                     = CFrame.new(513, 105, -77),       -- Larila Desert
-    ["To To To To To To To To Sahur"]                  = CFrame.new(-287, 109, -1866),    -- Tralalero Ocean
-    ["To To To To To To To To To Sahur"]               = CFrame.new(-1531, 147, 1375),    -- Mount Ambalabu
-    ["To To To To To To To To To To Sahur"]             = CFrame.new(-2640, 113.7, -899),  -- Chicleteiramania
-    ["To To To To To To To To To To To Sahur"]           = CFrame.new(-2200, 291, -3756),   -- Nuclearo Core
-    ["To To To To To To To To To To To To Sahur"]         = CFrame.new(1294, -41, -4262),    -- Udin Dinlympus
-    ["To To To To To To To To To To To To To Sahur"]       = CFrame.new(-3945, 51, 934),      -- Glorbo Heights
-    ["To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-1788, 199, 5011),    -- Brainrot Abyss
-    ["To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-3607, 197, 2246),    -- Bombardino Sewer
-    ["To To To To To To To To To To To To To To To To Sahur"] = CFrame.new(-6919, 75, -2238),   -- Goaaat Galaxy
+    ["To To To To To To To Sahur"]                       = CFrame.new(513, 105, -77),        -- Larila Desert
+    ["To To To To To To To To Sahur"]                    = CFrame.new(-287, 109, -1866),     -- Tralalero Ocean
+    ["To To To To To To To To To Sahur"]                 = CFrame.new(-1531, 147, 1375),     -- Mount Ambalabu
+    ["To To To To To To To To To To Sahur"]               = CFrame.new(-2640, 113.7, -899),   -- Chicleteiramania
+    ["To To To To To To To To To To To Sahur"]             = CFrame.new(-2200, 291, -3756),    -- Nuclearo Core
+    ["To To To To To To To To To To To To Sahur"]           = CFrame.new(1294, -41, -4262),     -- Udin Dinlympus
+    ["To To To To To To To To To To To To To Sahur"]         = CFrame.new(-3945, 51, 934),       -- Glorbo Heights
+    ["To To To To To To To To To To To To To To Sahur"]       = CFrame.new(-1788, 199, 5011),     -- Brainrot Abyss
+    ["To To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-3607, 197, 2246),     -- Bombardino Sewer
+    ["To To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-6919, 75, -2238),      -- Goaaat Galaxy
 }
 
 -- 🧍 Lấy HumanoidRootPart của người chơi
@@ -45,24 +45,18 @@ local function getBoss()
     return nil
 end
 
--- 📍 Teleport tới boss (dựa vào HRP của boss)
-local function teleportToBoss(boss)
-    local hrp = getHRP()
-    if hrp and boss and boss:FindFirstChild("HumanoidRootPart") then
-        hrp.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 0, 15)
-    end
-end
-
--- 📍 Teleport đi tuần tra các map để tìm boss
-local function patrolMaps()
+-- 📍 Teleport tới đúng map chứa boss (chỉ 1 lần)
+local function teleportToBossMap(boss)
+    if not boss or not boss:FindFirstChild("HumanoidRootPart") then return end
     local hrp = getHRP()
     if not hrp then return end
+
     for name, cf in pairs(bossSpawns) do
-        if not ToTo.auto then break end
-        hrp.CFrame = cf + Vector3.new(0,5,0)
-        print("🧭 Đang tuần tra map:", name)
-        task.wait(2.5)
-        if getBoss() then break end
+        if string.lower(name) == string.lower(boss.Name) then
+            hrp.CFrame = cf + Vector3.new(0, 5, 0)
+            print("📍 Teleport tới map chứa boss:", name)
+            break
+        end
     end
 end
 
@@ -80,7 +74,7 @@ local function farmBoss(mob)
     local hrp = getHRP()
     if not hrp then return end
 
-    teleportToBoss(mob)
+    teleportToBossMap(mob) -- chỉ gọi 1 lần trước khi đánh
     task.wait(1)
 
     while ToTo.auto 
@@ -97,6 +91,19 @@ local function farmBoss(mob)
             end
         end)
         task.wait(0.4)
+    end
+end
+
+-- 📍 Teleport đi tuần tra các map để tìm boss
+local function patrolMaps()
+    local hrp = getHRP()
+    if not hrp then return end
+    for name, cf in pairs(bossSpawns) do
+        if not ToTo.auto then break end
+        hrp.CFrame = cf + Vector3.new(0,5,0)
+        print("🧭 Đang tuần tra map:", name)
+        task.wait(2.5)
+        if getBoss() then break end
     end
 end
 
