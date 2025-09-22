@@ -198,7 +198,7 @@ if game.GameId == 7332711118 then
         pcall(function() BossDropdown:Refresh(newList, true) end)
 
         -- ⚡ Tự động teleport tới đúng map dựa vào tên boss
-        Teleport.teleportBossByName(boss.Name)
+        
     end)
 
     OrionLib:Init()
