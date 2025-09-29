@@ -1,6 +1,6 @@
 local Dungeon = {}
-Dungeon.autoDungeon = true
-Dungeon.autoPlayAgain = true
+Dungeon.autoDungeon = false
+Dungeon.autoPlayAgain = false
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
