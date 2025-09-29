@@ -21,7 +21,7 @@ local MainTab = Window:MakeTab({
 -- Toggle Auto Dungeons
 MainTab:AddToggle({
     Name = "Auto Dungeons",
-    Default = false,
+    Default = true,
     Callback = function(Value)
         Dungeon.autoDungeon = Value
         if Value then
@@ -33,7 +33,7 @@ MainTab:AddToggle({
 -- Toggle Auto Replay Dungeon
 MainTab:AddToggle({
     Name = "Auto Play Again",
-    Default = false,
+    Default = true,
     Callback = function(Value)
         if Value then
             Dungeon.enableAutoPlayAgain()
