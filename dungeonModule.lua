@@ -7,6 +7,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- Remotes
+local UpdateTimer = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.UpdateTimer
 local RequestAttack = ReplicatedStorage.Packages.Knit.Services.MonsterService.RF.RequestAttack
 local PlayAgainPressed = ReplicatedStorage.Packages.Knit.Services.DungeonService.RF.PlayAgainPressed
 local DisplayResults = ReplicatedStorage.Packages.Knit.Services.DungeonService.RE.DisplayResults
@@ -72,20 +73,30 @@ local function farmMob(mob)
 end
 
 -- vòng lặp auto dungeon
+-- vòng lặp auto dungeon (chỉ bắt đầu khi UpdateTimer báo "Game Start In:" = 0)
 function Dungeon.start()
-    task.wait(25)
-    task.spawn(function()
-        while Dungeon.autoDungeon do
-            local mob = getNearestMob()
-            if mob then
-                farmMob(mob)
-            else
-                task.wait(0.5)
-            end
-            task.wait(0.1)
+    if Dungeon._timerConn then
+        Dungeon._timerConn:Disconnect()
+    end
+
+    Dungeon._timerConn = UpdateTimer.OnClientEvent:Connect(function(timeLeft, message)
+        if message == "Game Start In:" and timeLeft == 0 then
+            print("Dungeon bắt đầu → auto farm bật")
+            task.spawn(function()
+                while Dungeon.autoDungeon do
+                    local mob = getNearestMob()
+                    if mob then
+                        farmMob(mob)
+                    else
+                        task.wait(0.5)
+                    end
+                    task.wait(0.1)
+                end
+            end)
         end
     end)
 end
+
 
 -- bật auto play again (dùng sự kiện server)
 function Dungeon.enableAutoPlayAgain()
