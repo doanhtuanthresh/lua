@@ -1,6 +1,6 @@
 local Dungeon = {}
-Dungeon.autoDungeon = false
-Dungeon.autoPlayAgain = false
+Dungeon.autoDungeon = true
+Dungeon.autoPlayAgain = true
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -73,6 +73,7 @@ end
 
 -- vòng lặp auto dungeon
 function Dungeon.start()
+    task.wait(16)
     task.spawn(function()
         while Dungeon.autoDungeon do
             local mob = getNearestMob()
