@@ -73,7 +73,7 @@ end
 
 -- vòng lặp auto dungeon
 function Dungeon.start()
-    task.wait(16)
+    task.wait(19)
     task.spawn(function()
         while Dungeon.autoDungeon do
             local mob = getNearestMob()
