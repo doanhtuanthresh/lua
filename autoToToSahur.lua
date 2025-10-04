@@ -35,7 +35,7 @@ local bossSpawns = {
 local function getBoss()
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("Model")
-        and string.find(string.lower(obj.Name), "to to sahur")
+        and string.find(string.lower(obj.Name), "tri tri sahur")
         and obj:FindFirstChild("Humanoid")
         and obj:FindFirstChild("HumanoidRootPart")
         and obj.Humanoid.Health > 0 then
