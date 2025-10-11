@@ -5,14 +5,15 @@ local BossLocations = {
     ["To To To To To To To Sahur"]                     = CFrame.new(513, 105, -77),       -- Larila Desert
     ["To To To To To To To To Sahur"]                  = CFrame.new(-287, 109, -1866),    -- Tralalero Ocean
     ["To To To To To To To To To Sahur"]               = CFrame.new(-1531, 147, 1375),    -- Mount Ambalabu
-    ["To To To To To To To To To To Sahur"]             = CFrame.new(-2640, 113.7, -899),  -- Chicleteiramania
-    ["To To To To To To To To To To To Sahur"]           = CFrame.new(-2200, 291, -3756),   -- Nuclearo Core
-    ["To To To To To To To To To To To To Sahur"]         = CFrame.new(1294, -41, -4262),    -- Udin Dinlympus
-    ["To To To To To To To To To To To To To Sahur"]       = CFrame.new(-3945, 51, 934),      -- Glorbo Heights
-    ["To To To To To To To To To To To To To To Sahur"]     = CFrame.new(-1788, 199, 5011),    -- Brainrot Abyss
-    ["To To To To To To To To To To To To To To To Sahur"]   = CFrame.new(-3607, 197, 2246),    -- Bombardino Sewer
-    ["To To To To To To To To To To To To To To To To Sahur"] = CFrame.new(-6919, 75, -2238),   -- Goaaat Galaxy
+    ["To To To To To To To To To To Sahur"]            = CFrame.new(-2640, 113.7, -899),  -- Chicleteiramania
+    ["To To To To To To To To To To To Sahur"]         = CFrame.new(-2200, 291, -3756),   -- Nuclearo Core
+    ["To To To To To To To To To To To To Sahur"]      = CFrame.new(1294, -41, -4262),    -- Udin Dinlympus
+    ["To To To To To To To To To To To To To Sahur"]   = CFrame.new(-3945, 51, 934),      -- Glorbo Heights
+    ["To To To To To To To To To To To To To To Sahur"]= CFrame.new(-1788, 199, 5011),    -- Brainrot Abyss
+    ["To To To To To To To To To To To To To To To Sahur"]= CFrame.new(-3607, 197, 2246), -- Bombardino Sewer
+    ["To To To To To To To To To To To To To To To To Sahur"]= CFrame.new(-6919, 75, -2238), -- Goaaat Galaxy
 }
+
 -- 🧍 Lấy character an toàn
 local function getPlayerCharacter()
     local player = game.Players.LocalPlayer
@@ -22,6 +23,23 @@ local function getPlayerCharacter()
     end
     task.wait(0.2)
     return char
+end
+
+-- 🧭 Hàm teleport an toàn (tự load vùng trước)
+local function safeTeleport(cf)
+    local char = getPlayerCharacter()
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    -- Ép Roblox stream vùng quanh điểm đích (nếu StreamingEnabled)
+    if workspace.StreamingEnabled then
+        pcall(function()
+            workspace:RequestStreamAroundAsync(cf.Position)
+        end)
+        task.wait(0.6)
+    end
+
+    -- Dịch chuyển nhân vật (PivotTo ổn định hơn CFrame)
+    char:PivotTo(cf + Vector3.new(0, 5, 0))
 end
 
 -- 🗺️ Lấy danh sách object con trong 1 folder
@@ -83,9 +101,8 @@ function Teleport.teleportTo(folder, name, useSpawn)
     end
 
     local targetPart = getTargetPart(target)
-    local char = getPlayerCharacter()
-    if char and char:FindFirstChild("HumanoidRootPart") and targetPart then
-        char.HumanoidRootPart.CFrame = targetPart.CFrame * CFrame.new(0, 5, 0)
+    if targetPart then
+        safeTeleport(targetPart.CFrame)
     end
 end
 
@@ -112,10 +129,7 @@ function Teleport.teleportToBoss(name)
     if not boss then return end
     local part = getTargetPart(boss)
     if part then
-        local char = getPlayerCharacter()
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char.HumanoidRootPart.CFrame = part.CFrame * CFrame.new(0, 0, 15)
-        end
+        safeTeleport(part.CFrame * CFrame.new(0, 0, 15))
     end
 end
 
@@ -126,10 +140,7 @@ function Teleport.teleportBossByName(name)
         warn("Không tìm thấy vị trí boss: " .. tostring(name))
         return
     end
-    local char = getPlayerCharacter()
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = cf + Vector3.new(0, 5, 0)
-    end
+    safeTeleport(cf)
 end
 
 -- 🟢 Theo dõi boss mới được stream về
