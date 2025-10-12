@@ -29,6 +29,7 @@ local bossSpawns = {
     ["Brainrot Abyss"]   = CFrame.new(-1788, 199, 5011),
     ["Bombardino Sewer"] = CFrame.new(-3607, 197, 2246),
     ["Goaaat Galaxy"] = CFrame.new(-6919, 75, -2238),
+    ["Strawberry Land"] = CFrame.new(-7112, 42, 2711),
 }
 
 -- Detect boss
