@@ -6,7 +6,7 @@ local RollRemote = ReplicatedStorage.Packages.Knit.Services.MedalService.RF.Roll
 
 AutoRoll.enabled = false
 AutoRoll.targetMedal = nil
-AutoRoll.delay = 1 -- giây
+AutoRoll.delay = 2 -- giây
 
 function AutoRoll.start()
     spawn(function()
