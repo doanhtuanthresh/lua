@@ -6,6 +6,8 @@ if game.GameId == 7332711118 then
     local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/speedup.lua"))()
     local ToTo = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/autoToToSahur.lua"))()
     local Teleport = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/teleport.lua"))()
+    local AutoRoll = loadstring(game:HttpGet("https://raw.githubusercontent.com/doanhtuanthresh/lua/main/autoroll.lua"))()
+
 
     local Window = OrionLib:MakeWindow({
         Name = "NOKM",
@@ -200,6 +202,36 @@ if game.GameId == 7332711118 then
         -- ⚡ Tự động teleport tới đúng map dựa vào tên boss
         
     end)
+
+    local RollTab = Window:MakeTab({
+    Name = "Auto Roll",
+    Icon = "",
+    PremiumOnly = false
+})
+
+RollTab:AddTextbox({
+    Name = "Tên Medal cần roll",
+    Default = "",
+    TextDisappear = false,
+    Callback = function(v)
+        AutoRoll.targetMedal = v  -- Ví dụ: "Udin Dinlympus"
+    end
+})
+
+RollTab:AddToggle({
+    Name = "Bật Auto Roll",
+    Default = false,
+    Callback = function(v)
+        AutoRoll.enabled = v
+        if v then
+            AutoRoll.start()
+            OrionLib:MakeNotification({Name="Auto Roll", Content="Đang roll...", Time=3})
+        else
+            OrionLib:MakeNotification({Name="Auto Roll", Content="Đã tắt Auto Roll", Time=3})
+        end
+    end
+})
+
 
     OrionLib:Init()
 end
